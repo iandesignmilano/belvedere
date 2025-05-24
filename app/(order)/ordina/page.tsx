@@ -67,9 +67,13 @@ export default function Order() {
         <section className="relative py-10 lg:py-20 overflow-hidden bg-food min-h-svh flex flex-col items-center justify-center">
             <div className="custom-container xl:px-60">
                 <div className="flex flex-col gap-8 text-center">
-                    <MotionText title={data[progress].title} text={data[progress].text} />
-                    <Progress className="h-3" value={progressBar[progress]} />
-                    <FormOrder progress={progress} setProgress={setProgress} />
+                    <MotionText title={data[progress].title} text={data[progress].text} button={data[progress].button} />
+                    {progress !== progressBar.length - 1 && (
+                        <>
+                            <Progress className="h-3" value={progressBar[progress]} />
+                            <FormOrder progress={progress} setProgress={setProgress} />
+                        </>
+                    )}
                 </div>
             </div>
         </section>

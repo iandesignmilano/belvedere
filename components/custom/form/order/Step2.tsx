@@ -39,7 +39,7 @@ interface Step1Props {
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export default function Step1({ values, errors, touched, handleBlur, handleChange, setFieldValue, progress, setProgress }: Step1Props) {
+export default function Step2({ values, errors, touched, handleBlur, handleChange, setFieldValue, progress, setProgress }: Step1Props) {
     return (
         <>
             <div className="text-lg grid grid-cols-2 gap-8 lg:col-span-2">

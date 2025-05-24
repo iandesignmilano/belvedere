@@ -1,19 +1,15 @@
-// components
-import Title from "@/components/site/Title"
-import FormWork from "@/components/custom/form/FormWork"
-
 // shad
 import { Toaster } from "@/components/ui/sonner"
+
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export default function WorkPage() {
+export default function PrivateLayout({ children }: { children: React.ReactNode }) {
     return (
         <>
-            <Title name="Lavora con noi" />
-            <FormWork />
+            {children}
             <Toaster />
         </>
     )
