@@ -7,22 +7,6 @@ import { MongodbAdapter } from "@lucia-auth/adapter-mongodb"
 
 // db
 import { User, Session } from './db'
-import { ObjectId } from 'mongodb';
-
-// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// interface
-// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-declare module "lucia" {
-    interface Register {
-        Lucia: typeof lucia;
-        DatabaseUserAttributes: DatabaseUserAttributes;
-    }
-}
-
-interface DatabaseUserAttributes {
-    code: string;
-}
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // adapter
@@ -38,10 +22,8 @@ const lucia = new Lucia(
     adapter,
     {
         sessionCookie: {
-            // expires: false,
             attributes: { secure: process.env.NODE_ENV == 'production' }
-        },
-        getUserAttributes: (attributes) => { return { code: attributes.code } }
+        }
     },
 )
 
@@ -49,10 +31,10 @@ const lucia = new Lucia(
 // create session
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export async function createSession(userId: ObjectId) {
+export async function createSession(userId: string) {
 
     // create session
-    const session = await lucia.createSession(userId.toString(), {})
+    const session = await lucia.createSession(userId, {})
     const sessionCookie = lucia.createSessionCookie(session.id)
 
     // set cookie

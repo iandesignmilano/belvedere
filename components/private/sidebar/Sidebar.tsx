@@ -5,7 +5,7 @@ import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupLabel, SidebarGroupC
 import { SidebarButton, SidebarLogoutButton } from "./SidebarButtons"
 
 // icons
-import { Home, User, Users, Settings, Calendar, Pizza, Utensils } from "lucide-react"
+import { Home, User, Users, Calendar, Pizza, Utensils, Blocks } from "lucide-react"
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // items
@@ -16,6 +16,11 @@ const app = [
         title: "Dashboard",
         url: "/private",
         icon: <Home />
+    },
+    {
+        title: "Tavoli",
+        url: "/private/tavoli",
+        icon: <Blocks />
     },
     {
         title: "Ingredienti",
@@ -42,11 +47,6 @@ const settings = [
         title: "Utenti",
         url: "/private/utenti",
         icon: <Users />
-    },
-    {
-        title: "Impostazioni",
-        url: "/private/impostazioni",
-        icon: <Settings />
     },
     {
         title: "Profilo",

@@ -7,7 +7,6 @@ import { Collection, MongoClient } from "mongodb"
 
 interface UserDoc {
     _id: string;
-    code: string;
 }
 
 interface SessionDoc {

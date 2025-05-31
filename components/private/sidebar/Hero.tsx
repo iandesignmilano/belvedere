@@ -28,7 +28,7 @@ export default function Hero({ path }: HeroProps) {
                                 return (
                                     <React.Fragment key={index}>
                                         <BreadcrumbItem>
-                                            <BreadcrumbLink className="capitalize" href={el.link}>{el.name}</BreadcrumbLink>
+                                            <BreadcrumbLink href={el.link}>{el.name}</BreadcrumbLink>
                                         </BreadcrumbItem>
                                         <BreadcrumbSeparator />
                                     </React.Fragment>
@@ -36,7 +36,7 @@ export default function Hero({ path }: HeroProps) {
                             }
                             return (
                                 <BreadcrumbItem key={index}>
-                                    <BreadcrumbPage className="text-primary capitalize">{el.name}</BreadcrumbPage>
+                                    <BreadcrumbPage className="text-primary">{el.name}</BreadcrumbPage>
                                 </BreadcrumbItem>
                             )
                         })}

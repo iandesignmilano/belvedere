@@ -51,7 +51,7 @@ export async function loginAction(formData: loginActionProps) {
     const check = decryptPassword(user.password, password)
     if (!check) return { errors: "Si è verificato un errore, riprova più tardi" }
 
-    await createSession(user._id)
+    await createSession(user._id.toString())
     redirect("/private")
 }
 

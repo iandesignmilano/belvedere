@@ -1,4 +1,4 @@
-import React, { useEffect } from "react"
+import React, { useState, useEffect } from "react"
 
 // shad
 import { Label } from "@/components/ui/label"
@@ -9,9 +9,6 @@ import { Separator } from "@/components/ui/separator"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
-// data
-import { Ingredients } from "@/assets/data/menu"
-
 // formik
 import { FormikErrors, FormikTouched, FormikHelpers } from "formik"
 
@@ -20,6 +17,9 @@ import { initialValue } from "./Step1"
 
 // icons
 import { Plus, Minus } from "lucide-react"
+
+// action
+import { getIngredients } from "@/actions/ingredients"
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // interface
@@ -39,6 +39,21 @@ interface Step1DrawerFormProps {
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 export default function Step1DrawerForm({ selected, values, errors, touched, setFieldValue, setFieldTouched }: Step1DrawerFormProps) {
+
+
+    // --------------------------------------------------------------
+    // ingredients
+    // --------------------------------------------------------------
+
+    const [allIngredients, setAllIngredients] = useState<Record<string, string>[]>([])
+
+    useEffect(() => {
+        async function getData() {
+            const data = await getIngredients()
+            if (data) setAllIngredients(data)
+        }
+        getData()
+    }, [])
 
     // --------------------------------------------------------------
     // index and clear
@@ -145,7 +160,7 @@ export default function Step1DrawerForm({ selected, values, errors, touched, set
                     </div>
                 </div>
 
-                <div>
+                <div className="lg:col-span-2">
                     {!data.type && <p className="text-muted-foreground text-sm mb-2">Seleziona la porzione per poter personalizzare</p>}
                     <Accordion
                         type="single"
@@ -182,7 +197,7 @@ export default function Step1DrawerForm({ selected, values, errors, touched, set
                                 </div>
                             </AccordionTrigger>
                             <AccordionContent className="space-y-4">
-                                {Ingredients.map((el, i) => (
+                                {allIngredients.map((el, i) => (
                                     <React.Fragment key={i}>
                                         {i == 0 && <Separator className="bg-slate-300" />}
                                         <div
@@ -211,7 +226,7 @@ export default function Step1DrawerForm({ selected, values, errors, touched, set
                                                 <span className="text-primary">+ {el.price}€</span>
                                             </div>
                                         </div>
-                                        {Ingredients.length !== (i + 1) && <Separator className="bg-slate-300" />}
+                                        {allIngredients.length !== (i + 1) && <Separator className="bg-slate-300" />}
                                     </React.Fragment>
                                 ))}
                             </AccordionContent>

@@ -55,14 +55,8 @@ const anim = {
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 const schema = yup.object({
-    fullname: yup
-        .string()
-        .required("Nome e Cognome sono obbligatori"),
-
-    email: yup
-        .string()
-        .required("L'email è obbligatoria")
-        .email("Inserisci un'email valida"),
+    fullname: yup.string().required("Nome e Cognome sono obbligatori"),
+    email: yup.string().required("L'email è obbligatoria").email("Inserisci un'email valida"),
 
     phone: yup
         .string()
@@ -70,28 +64,15 @@ const schema = yup.object({
         .matches(/^\+?[0-9\s\-]{7,15}$/, "Inserisci un numero di telefono valido"),
 
     file: yup
-        .mixed()
-        .required("Il file è obbligatorio")
+        .mixed().required("Il file è obbligatorio")
         .test("fileType", "Deve essere un file PDF", value => { return value instanceof File && value.type === "application/pdf" })
         .test("fileSize", "Il file deve essere massimo 2MB", value => { return value instanceof File && value.size <= 2 * 1024 * 1024 }),
 
-    message: yup
-        .string()
-        .optional(),
-
-    privacy: yup
-        .boolean()
-        .oneOf([true], "Devi accettare la privacy")
+    message: yup.string().optional(),
+    privacy: yup.boolean().oneOf([true], "Devi accettare la privacy")
 })
 
-const initial = {
-    fullname: "",
-    email: "",
-    phone: "",
-    file: null,
-    privacy: false,
-    message: ""
-}
+const initial = { fullname: "", email: "", phone: "", file: null, privacy: false, message: "" }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // code

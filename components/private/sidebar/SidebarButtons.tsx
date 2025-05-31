@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation"
 
 // shad
 import { SidebarMenuButton } from "@/components/ui/sidebar"
+import { useSidebar } from "@/components/ui/sidebar"
 
 // components
 import { ToastDanger } from "@/components/custom/Toast"
@@ -34,13 +35,15 @@ export function SidebarButton({ icon, name, path }: SidebarButtonProps) {
 
     const pt = usePathname()
 
+    const { toggleSidebar } = useSidebar()
+
     return (
         <SidebarMenuButton
             asChild
             isActive={path == pt}
             className="data-[active=true]:bg-primary data-[active=true]:text-white hover:bg-primary hover:text-white transition-all duration-200 ease-in-out"
         >
-            <Link href={path}>
+            <Link href={path} onClick={toggleSidebar}>
                 {icon}
                 <span>{name}</span>
             </Link>
