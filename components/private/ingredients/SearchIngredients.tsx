@@ -34,6 +34,7 @@ export default function SearchIngredients({ filterData }: SearchIngredientsProps
             />
             <Button
                 size="icon"
+                disabled={!search}
                 className="rounded-full cursor-pointer"
                 onClick={() => filterData(search)}
             >

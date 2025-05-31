@@ -160,122 +160,121 @@ export default function FormUser({ children, type, id }: FormUserProps) {
 
             <Drawer open={open} onOpenChange={() => setOpen(false)}>
                 <DrawerContent onInteractOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()}>
-                    <form onSubmit={handleSubmit}>
-                        <DrawerHeader>
-                            <DrawerTitle className="text-2xl text-primary">{text[type].title}</DrawerTitle>
-                            <DrawerDescription className="text-base">{text[type].description}</DrawerDescription>
-                        </DrawerHeader>
-                        <Separator />
-                        <section className="p-4 overflow-y-auto flex-1 grid lg:grid-cols-3 gap-4">
+                    <DrawerHeader>
+                        <DrawerTitle className="text-2xl text-primary">{text[type].title}</DrawerTitle>
+                        <DrawerDescription className="text-base">{text[type].description}</DrawerDescription>
+                    </DrawerHeader>
+                    <Separator />
+                    <section className="p-4 overflow-y-auto flex-1 grid lg:grid-cols-3 gap-4">
 
-                            <div className="space-y-2">
-                                <Label className="pl-3">Nome e Cognome</Label>
-                                <Input
-                                    name="fullname"
-                                    placeholder="Nome e Cognome"
-                                    onChange={handleChange}
-                                    onBlur={handleBlur}
-                                    value={values.fullname}
-                                    className={errors.fullname && touched.fullname ? "custom-form-error" : ""}
+                        <div className="space-y-2">
+                            <Label className="pl-3">Nome e Cognome</Label>
+                            <Input
+                                name="fullname"
+                                placeholder="Nome e Cognome"
+                                onChange={handleChange}
+                                onBlur={handleBlur}
+                                value={values.fullname}
+                                className={errors.fullname && touched.fullname ? "custom-form-error" : ""}
+                            />
+                            {errors.fullname && touched.fullname && <p className="text-destructive text-sm pl-3">{errors.fullname}</p>}
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label className="pl-3">Email</Label>
+                            <Input
+                                name="email"
+                                placeholder="Email"
+                                type="email"
+                                onChange={handleChange}
+                                onBlur={handleBlur}
+                                value={values.email}
+                                className={errors.email && touched.email ? "custom-form-error" : ""}
+                            />
+                            {errors.email && touched.email && <p className="text-red-500 text-sm pl-3">{errors.email}</p>}
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label className="pl-3">Password</Label>
+                            <Input
+                                type='password'
+                                name="password"
+                                placeholder="Password"
+                                onChange={handleChange}
+                                onBlur={handleBlur}
+                                value={values.password}
+                                className={errors.password && touched.password ? "custom-form-error" : ""}
+                            />
+                            {errors.password && touched.password && <p className="text-destructive text-sm pl-3">{errors.password}</p>}
+                        </div>
+
+                        <Separator className='lg:col-span-3' />
+
+                        <div className='lg:col-span-3 space-y-4'>
+                            <Label>Superutente</Label>
+                            <Switch
+                                checked={values.superuser}
+                                onCheckedChange={(checked) => {
+                                    const check = checked ? "view,update,create,delete" : ""
+                                    setFieldValue("superuser", checked)
+                                    setFieldValue("privileges", check)
+                                }}
+                            />
+                        </div>
+
+                        <Separator className='lg:col-span-3' />
+
+                        <div className='lg:col-span-3 space-y-4'>
+                            <Label>Privilegi</Label>
+                            <div className="flex items-center gap-2">
+                                <Checkbox
+                                    className='size-6 bg-input'
+                                    checked={values.privileges.includes('view')}
+                                    onCheckedChange={(checked: boolean) => handleCheck(checked, "view")}
                                 />
-                                {errors.fullname && touched.fullname && <p className="text-destructive text-sm pl-3">{errors.fullname}</p>}
+                                <p className='text-base'>Visualizza</p>
                             </div>
-
-                            <div className="space-y-2">
-                                <Label className="pl-3">Email</Label>
-                                <Input
-                                    name="email"
-                                    placeholder="Email"
-                                    type="email"
-                                    onChange={handleChange}
-                                    onBlur={handleBlur}
-                                    value={values.email}
-                                    className={errors.email && touched.email ? "custom-form-error" : ""}
+                            <div className="flex items-center gap-2">
+                                <Checkbox
+                                    className='size-6 bg-input'
+                                    checked={values.privileges.includes('update')}
+                                    onCheckedChange={(checked: boolean) => handleCheck(checked, "update")}
                                 />
-                                {errors.email && touched.email && <p className="text-red-500 text-sm pl-3">{errors.email}</p>}
+                                <p className='text-base'>Modifica</p>
                             </div>
-
-                            <div className="space-y-2">
-                                <Label className="pl-3">Password</Label>
-                                <Input
-                                    type='password'
-                                    name="password"
-                                    placeholder="Password"
-                                    onChange={handleChange}
-                                    onBlur={handleBlur}
-                                    value={values.password}
-                                    className={errors.password && touched.password ? "custom-form-error" : ""}
+                            <div className="flex items-center gap-2">
+                                <Checkbox
+                                    className='size-6 bg-input'
+                                    checked={values.privileges.includes('create')}
+                                    onCheckedChange={(checked: boolean) => handleCheck(checked, "create")}
                                 />
-                                {errors.password && touched.password && <p className="text-destructive text-sm pl-3">{errors.password}</p>}
+                                <p className='text-base'>Crea</p>
                             </div>
-
-                            <Separator className='lg:col-span-3' />
-
-                            <div className='lg:col-span-3 space-y-4'>
-                                <Label>Superutente</Label>
-                                <Switch
-                                    checked={values.superuser}
-                                    onCheckedChange={(checked) => {
-                                        const check = checked ? "view,update,create,delete" : ""
-                                        setFieldValue("superuser", checked)
-                                        setFieldValue("privileges", check)
-                                    }}
+                            <div className="flex items-center gap-2">
+                                <Checkbox
+                                    className='size-6 bg-input'
+                                    checked={values.privileges.includes('delete')}
+                                    onCheckedChange={(checked: boolean) => handleCheck(checked, "delete")}
                                 />
+                                <p className='text-base'>Elimina</p>
                             </div>
-
-                            <Separator className='lg:col-span-3' />
-
-                            <div className='lg:col-span-3 space-y-4'>
-                                <Label>Privilegi</Label>
-                                <div className="flex items-center gap-2">
-                                    <Checkbox
-                                        className='size-6 bg-input'
-                                        checked={values.privileges.includes('view')}
-                                        onCheckedChange={(checked: boolean) => handleCheck(checked, "view")}
-                                    />
-                                    <p className='text-base'>Visualizza</p>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Checkbox
-                                        className='size-6 bg-input'
-                                        checked={values.privileges.includes('update')}
-                                        onCheckedChange={(checked: boolean) => handleCheck(checked, "update")}
-                                    />
-                                    <p className='text-base'>Modifica</p>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Checkbox
-                                        className='size-6 bg-input'
-                                        checked={values.privileges.includes('create')}
-                                        onCheckedChange={(checked: boolean) => handleCheck(checked, "create")}
-                                    />
-                                    <p className='text-base'>Crea</p>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Checkbox
-                                        className='size-6 bg-input'
-                                        checked={values.privileges.includes('delete')}
-                                        onCheckedChange={(checked: boolean) => handleCheck(checked, "delete")}
-                                    />
-                                    <p className='text-base'>Elimina</p>
-                                </div>
-                            </div>
-                        </section>
-                        <Separator />
-                        <DrawerFooter className="flex items-center justify-end gap-4 flex-row">
-                            <DrawerClose asChild>
-                                <Button className="custom-button max-lg:grow" type='button' variant="destructive">Annulla</Button>
-                            </DrawerClose>
-                            <Button
-                                type='submit'
-                                className="custom-button max-lg:grow"
-                                disabled={!isValid || !dirty || isSubmitting}
-                            >
-                                {isSubmitting && <Loader2 className="animate-spin" />}
-                                {text[type].button}
-                            </Button>
-                        </DrawerFooter>
-                    </form>
+                        </div>
+                    </section>
+                    <Separator />
+                    <DrawerFooter className="flex items-center justify-end gap-4 flex-row">
+                        <DrawerClose asChild>
+                            <Button className="custom-button max-lg:grow" type='button' variant="destructive">Annulla</Button>
+                        </DrawerClose>
+                        <Button
+                            type='submit'
+                            className="custom-button max-lg:grow"
+                            disabled={!isValid || !dirty || isSubmitting}
+                            onClick={() => handleSubmit()}
+                        >
+                            {isSubmitting && <Loader2 className="animate-spin" />}
+                            {text[type].button}
+                        </Button>
+                    </DrawerFooter>
                 </DrawerContent>
             </Drawer>
         </>

@@ -35,15 +35,16 @@ export function SidebarButton({ icon, name, path }: SidebarButtonProps) {
 
     const pt = usePathname()
 
-    const { toggleSidebar } = useSidebar()
+    const { isMobile, openMobile, setOpenMobile } = useSidebar()
 
     return (
         <SidebarMenuButton
             asChild
             isActive={path == pt}
-            className="data-[active=true]:bg-primary data-[active=true]:text-white hover:bg-primary hover:text-white transition-all duration-200 ease-in-out"
+            className="data-[active=true]:bg-primary data-[active=true]:text-white hover:bg-primary hover:text-white custom-transition"
+            onClick={() => isMobile && setOpenMobile(!openMobile)}
         >
-            <Link href={path} onClick={toggleSidebar}>
+            <Link href={path}>
                 {icon}
                 <span>{name}</span>
             </Link>
@@ -66,7 +67,10 @@ export function SidebarLogoutButton() {
     }
 
     return (
-        <SidebarMenuButton className="text-primary hover:text-white hover:bg-primary cursor-pointer" onClick={logout}>
+        <SidebarMenuButton
+            className="text-destructive hover:text-white hover:bg-destructive cursor-pointer custom-transition"
+            onClick={logout}
+        >
             <LogOut />
             <span>logout</span>
         </SidebarMenuButton>

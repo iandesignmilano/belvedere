@@ -9,7 +9,7 @@ import { getIngredients } from "@/actions/ingredients"
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export default async function UsersPage() {
+export default async function IngredientsPage() {
 
     const ingredients = await getIngredients()
 
