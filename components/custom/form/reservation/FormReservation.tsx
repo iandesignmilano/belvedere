@@ -7,9 +7,13 @@ import * as yup from "yup"
 // components
 import Step1 from "./Step1"
 import Step2 from "./Step2"
+import { ToastDanger } from '../../Toast'
 
 // motion
 import { motion } from "motion/react"
+
+// actions
+import { addReservationAction, AddProps } from '@/actions/reservations'
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // interface
@@ -57,8 +61,6 @@ const stepSchemas = [
     yup.object({
         people: yup
             .number()
-            .nullable()
-            .transform((value, originalValue) => String(originalValue).trim() === "" ? null : value)
             .required("Indica il numero di persone")
             .positive("Minimo 1 persona")
             .min(1, "Minimo 1 persona")
@@ -78,7 +80,7 @@ const formInitialValue = {
     fullname: "",
     email: "",
     phone: "",
-    people: null,
+    people: 2,
     date: "",
     time: ""
 }
@@ -103,9 +105,12 @@ export default function FormReservation({ progress, setProgress }: FormReservati
     // send
     // --------------------------------------------------------------
 
-    const onSubmitFunction = (values: typeof formInitialValue) => {
-        console.log(values)
-        setProgress(progress + 1)
+    async function onSubmitFunction(val: AddProps) {
+        try {
+            const res = await addReservationAction(val)
+            if (res.success) setProgress(progress + 1)
+            if (res.errors) ToastDanger()
+        } catch { ToastDanger() }
     }
 
     // --------------------------------------------------------------

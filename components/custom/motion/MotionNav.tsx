@@ -145,7 +145,7 @@ export default function MotionNav() {
                         animate={{ opacity: 1 }}
                         transition={{ duration: 0.5, ease: "easeInOut" }}
                         exit={{ opacity: 0 }}
-                        className="w-full bg-primary h-svh fixed top-0 left-0 z-[90] overflow-hidden flex flex-col items-center justify-center gap-16"
+                        className="w-full bg-white h-svh fixed top-0 left-0 z-[90] overflow-hidden flex flex-col items-center justify-center gap-16"
                     >
                         {nav
                             .filter((el) => !el.button)
@@ -155,7 +155,7 @@ export default function MotionNav() {
                                     initial={{ opacity: 0, y: 100 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ duration: 0.5, delay: (i + 1) * 0.5, ease: "easeInOut" }}
-                                    className={`text-white font-title text-5xl ${pathname == el.link && "pb-2 border-b-2"}`}
+                                    className={`text-primary font-title text-5xl ${pathname == el.link && "pb-2 border-b-2"}`}
                                 >
                                     <Link href={el.link} onClick={() => setOpen(false)}>
                                         {el.title}

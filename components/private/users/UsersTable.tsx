@@ -46,7 +46,7 @@ export default function UsersTable({ users }: UsersTableProps) {
                     </FormUser>
                 </div>
             </div>
-
+            <Separator />
             <section className="grid lg:grid-cols-2 xl:grid-cols-4 gap-4 items-start">
                 {users.map((el) => {
 

@@ -20,13 +20,13 @@ import { ToastSuccess, ToastDanger } from "../Toast"
 import { Loader2 } from "lucide-react"
 
 // actions
-import { addIngredientAction, updateIngredientAction, getIngredient } from '@/actions/ingredients'
+import { getTable, addTableAction, updateTableAction } from '@/actions/tables'
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // interface
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-interface FormIngredientsProps {
+interface FormTablesProps {
     children: React.ReactNode
     type: "create" | "update"
     id?: string
@@ -38,13 +38,13 @@ interface FormIngredientsProps {
 
 const text = {
     create: {
-        title: "Aggiungi ingrediente",
-        description: "Compila i campi sottostanti per aggiungere un nuovo ingrediente alla piattaforma.",
-        button: "Aggiungi ingrediente"
+        title: "Aggiungi tavolo",
+        description: "Compila i campi sottostanti per aggiungere un nuovo tavolo alla piattaforma.",
+        button: "Aggiungi tavolo"
     },
     update: {
-        title: "Modifica ingrediente",
-        description: "Aggiorna le informazioni dell'ingrediente selezionato.",
+        title: "Modifica tavolo",
+        description: "Aggiorna le informazioni del tavolo selezionato.",
         button: "Salva modifiche"
     }
 }
@@ -54,22 +54,25 @@ const text = {
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 const schema = yup.object({
-    name: yup.string().required("Il nome dell'ingrediente è obbligatorio"),
-    price: yup
+    people: yup
         .string()
-        .required("Il prezzo dell'ingrediente è obbligatorio")
-        .matches(/^\d+(\.\d{1,2})?$/, "Il prezzo deve essere un numero valido")
+        .required("Il numero di persone è obbligatorio")
+        .matches(/^\d+$/, "Il numero di persone deve essere un numero intero"),
+    total: yup
+        .string()
+        .required("Il totale è obbligatorio")
+        .matches(/^\d+$/, "Il totale deve essere un numero intero"),
 })
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export default function FormIngredients({ children, type, id }: FormIngredientsProps) {
+export default function FormTables({ children, type, id }: FormTablesProps) {
 
     const [open, setOpen] = useState(false)
 
-    const [initial, setInitial] = useState({ name: "", price: "" })
+    const [initial, setInitial] = useState({ people: "", total: "" })
 
     // --------------------------------------------------------------
     // data (update)
@@ -78,8 +81,8 @@ export default function FormIngredients({ children, type, id }: FormIngredientsP
     useEffect(() => {
         async function getData() {
             if (id) {
-                const data = await getIngredient(id)
-                if (data) setInitial({ name: data.name, price: data.price })
+                const data = await getTable(id)
+                if (data) setInitial({ people: data.people, total: data.total })
                 else ToastDanger()
             }
         }
@@ -105,11 +108,11 @@ export default function FormIngredients({ children, type, id }: FormIngredientsP
 
     async function onSubmitFunction(val: typeof initial) {
         try {
-            const res = type == 'create' ? await addIngredientAction(val) : await updateIngredientAction(id as string, val)
+            const res = type == 'create' ? await addTableAction(val) : await updateTableAction(id as string, val)
             if (res.success) {
                 setOpen(false)
                 handleReset(initial)
-                ToastSuccess(type == "create" ? "Ingrediente aggiunto con successo!" : "Ingrediente aggiornato con successo!")
+                ToastSuccess(type == "create" ? "Tavolo aggiunto con successo!" : "Tavolo aggiornato con successo!")
             }
             if (res.errors) ToastDanger()
         } catch { ToastDanger() }
@@ -133,30 +136,31 @@ export default function FormIngredients({ children, type, id }: FormIngredientsP
                     <section className="p-4 overflow-y-auto flex-1 grid lg:grid-cols-2 gap-4">
 
                         <div className="space-y-2">
-                            <Label className="pl-3">Nome</Label>
+                            <Label className="pl-3">Numero di persone</Label>
                             <Input
-                                name="name"
-                                placeholder="Nome"
+                                type='number'
+                                name="people"
+                                placeholder="Numero di persone"
                                 onChange={handleChange}
                                 onBlur={handleBlur}
-                                value={values.name}
-                                className={errors.name && touched.name ? "custom-form-error" : ""}
+                                value={values.people}
+                                className={errors.people && touched.people ? "custom-form-error" : ""}
                             />
-                            {errors.name && touched.name && <p className="text-destructive text-sm pl-3">{errors.name}</p>}
+                            {errors.people && touched.people && <p className="text-destructive text-sm pl-3">{errors.people}</p>}
                         </div>
 
                         <div className="space-y-2">
-                            <Label className="pl-3">Prezzo</Label>
+                            <Label className="pl-3">Disponibilità</Label>
                             <Input
                                 type='number'
-                                name="price"
-                                placeholder="Prezzo"
+                                name="total"
+                                placeholder="Disponibilità"
                                 onChange={handleChange}
                                 onBlur={handleBlur}
-                                value={values.price}
-                                className={errors.price && touched.price ? "custom-form-error" : ""}
+                                value={values.total}
+                                className={errors.total && touched.total ? "custom-form-error" : ""}
                             />
-                            {errors.price && touched.price && <p className="text-destructive text-sm pl-3">{errors.price}</p>}
+                            {errors.total && touched.total && <p className="text-destructive text-sm pl-3">{errors.total}</p>}
                         </div>
                     </section>
                     <Separator />

@@ -85,7 +85,7 @@ export default function Step1({ values, errors, touched, handleBlur, handleChang
                 <Button
                     type="button"
                     className="custom-button !text-lg max-lg:grow"
-                    disabled={!values.fullname || !values.email || !values.phone || !!errors.fullname || !!errors.email || !!errors.phone}
+                    disabled={!values.fullname || !values.phone || !!errors.fullname || !!errors.email || !!errors.phone}
                     onClick={() => setProgress(progress + 1)}
                 >
                     Avanti

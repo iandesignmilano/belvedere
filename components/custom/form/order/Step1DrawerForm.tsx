@@ -134,6 +134,7 @@ export default function Step1DrawerForm({ selected, values, errors, touched, set
                         <Input type="number" min={1} disabled value={data.quantity} className="disabled:opacity-100" />
                         <div className="flex gap-2">
                             <Button
+                                type="button"
                                 className="h-full !px-4 !text-lg"
                                 onClick={() => {
                                     const qta = data.quantity + 1
@@ -145,6 +146,7 @@ export default function Step1DrawerForm({ selected, values, errors, touched, set
                                 <Plus className="size-4" />
                             </Button>
                             <Button
+                                type="button"
                                 className="h-full !px-4 !text-lg"
                                 disabled={data.quantity == 1}
                                 onClick={() => {

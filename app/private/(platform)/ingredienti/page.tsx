@@ -13,9 +13,7 @@ export default async function IngredientsPage() {
 
     const ingredients = await getIngredients()
 
-    if (!ingredients) {
-        return <>Caricamento....</>
-    }
+    if (!ingredients) { return <>Caricamento....</> }
 
     return (
         <>

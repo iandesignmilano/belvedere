@@ -61,7 +61,7 @@ export function DatePicker({ placeholder, value, onChange, className }: DatePick
                     <CalendarIcon className="size-4" />
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
+            <PopoverContent className="w-auto p-0 !z-[9999] pointer-events-auto">
                 <Calendar
                     locale={it}
                     mode="single"

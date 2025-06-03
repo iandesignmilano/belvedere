@@ -9,31 +9,29 @@ import { DatePicker } from "@/components/ui/datePicker"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 // icons
-import { Loader2 } from "lucide-react"
+import { Loader2, Plus, Minus } from "lucide-react"
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // interface
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 type initialValue = {
-    people: number | null;
-    date: string | undefined;
-    time: string;
+    people: number
+    date: string | undefined
+    time: string
 }
 
 interface Step2Props {
-    values: initialValue;
-    errors: FormikErrors<initialValue>;
-    touched: FormikTouched<initialValue>;
-    handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    handleBlur: (e: React.FocusEvent<HTMLInputElement>) => void;
-    setFieldValue: <K extends keyof initialValue>(field: K, value: initialValue[K], shouldValidate?: boolean) => void;
+    values: initialValue
+    errors: FormikErrors<initialValue>
+    touched: FormikTouched<initialValue>
+    setFieldValue: <K extends keyof initialValue>(field: K, value: initialValue[K], shouldValidate?: boolean) => void
+    setFieldTouched: (field: string, touched?: boolean, shouldValidate?: boolean) => void;
+    isValid: boolean
+    isSubmitting: boolean
 
-    isValid: boolean;
-    isSubmitting: boolean;
-
-    setProgress: React.Dispatch<React.SetStateAction<number>>;
-    progress: number;
+    setProgress: React.Dispatch<React.SetStateAction<number>>
+    progress: number
 }
 
 
@@ -41,20 +39,47 @@ interface Step2Props {
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export default function Step2({ values, errors, touched, handleBlur, handleChange, isValid, isSubmitting, setFieldValue, progress, setProgress }: Step2Props) {
+export default function Step2({ values, errors, touched, isValid, isSubmitting, setFieldValue, progress, setProgress, setFieldTouched }: Step2Props) {
     return (
         <>
             <div className="space-y-2 lg:col-span-2">
                 <Label className="text-base pl-3">Numero di persone</Label>
-                <Input
-                    name="people"
-                    placeholder="Numero di persone"
-                    type="number"
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    value={values.people ?? ""}
-                    className={errors.people && touched.people ? "custom-form-error" : ""}
-                />
+                <div className="flex gap-2">
+                    <Input
+                        name="people"
+                        type="number"
+                        disabled
+                        value={values.people}
+                        className="disabled:opacity-100"
+                    />
+                    <div className="flex gap-2">
+                        <Button
+                            type="button"
+                            className="h-full !px-4 !text-lg"
+                            disabled={values.people == 15}
+                            onClick={() => {
+                                const qta = values.people == 15 ? 15 : values.people + 1
+                                setFieldValue("people", qta)
+                                setFieldTouched("people", true, true)
+                            }}
+                        >
+                            <Plus className="size-4" />
+                        </Button>
+                        <Button
+                            type="button"
+                            className="h-full !px-4 !text-lg"
+                            disabled={values.people == 1}
+                            onClick={() => {
+                                const qta = values.people == 1 ? 1 : values.people - 1
+                                setFieldValue("people", qta)
+                                setFieldTouched("people", true, true)
+                            }}
+                        >
+                            <Minus className="size-4" />
+                        </Button>
+                    </div>
+                </div>
+                <p className="text-sm pl-3 text-muted-foreground">Oltre 15 persone chiama il numero: 02 241 65 947</p>
                 {errors.people && touched.people && <p className="text-red-500 text-sm pl-3">{errors.people}</p>}
             </div>
 

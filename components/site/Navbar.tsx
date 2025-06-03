@@ -73,7 +73,7 @@ export function Navbar({ className, open, setOpen }: NavbarProps) {
         <section className={`${className} custom-container px-8 grid grid-cols-2 lg:grid-cols-3 items-center gap-4 py-2 rounded-full custom-transition`}>
             <div>
                 <Link href="/" className="flex items-center cursor-pointer" onClick={() => setOpen(false)}>
-                    <Image src="/logo.webp" alt="" width={135} height={135} className="w-[80] lg:w-[100px]" />
+                    <Image src="/logo.png" alt="" width={200} height={81} className="w-[80] lg:w-[100px]" />
                 </Link>
             </div>
 
@@ -128,9 +128,9 @@ export function Navbar({ className, open, setOpen }: NavbarProps) {
 
             <div className="flex justify-end items-center lg:hidden">
                 <div className="w-12 h-12 relative overflow-hidden flex items-center justify-center" onClick={() => setOpen(!open)}>
-                    <span className={`custom-mobile-burger  delay-75 ${open ? "w-10 rotate-45 bg-white" : "w-7 -translate-y-4 bg-black"}`} />
-                    <span className={`custom-mobile-burger w-10 ${open ? "translate-x-14 bg-white" : "translate-x-0 bg-black"}`} />
-                    <span className={`custom-mobile-burger delay-100 ${open ? "w-10 -rotate-45 bg-white" : "w-3.5 translate-y-4 bg-black"}`} />
+                    <span className={`custom-mobile-burger bg-primary  delay-75 ${open ? "w-10 rotate-45" : "w-7 -translate-y-4"}`} />
+                    <span className={`custom-mobile-burger bg-primary w-10 ${open ? "translate-x-14" : "translate-x-0"}`} />
+                    <span className={`custom-mobile-burger bg-primary delay-100 ${open ? "w-10 -rotate-45" : "w-3.5 translate-y-4"}`} />
                 </div>
             </div>
 

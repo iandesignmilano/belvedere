@@ -37,10 +37,10 @@ export default function MotionLoader({ children }: { children: React.ReactNode; 
                         <div className="relative">
                             <Image
                                 priority
-                                src="/logo.webp"
+                                src="/logo.png"
                                 alt=""
-                                width={200}
-                                height={200}
+                                width={300}
+                                height={181}
                                 className="animate-pulse"
                             />
                         </div>

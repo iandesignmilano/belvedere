@@ -13,9 +13,7 @@ export default async function UsersPage() {
 
     const users = await getUsers()
 
-    if (!users) {
-        return <>Caricamento....</>
-    }
+    if (!users) { return <>Caricamento....</> }
 
     return (
         <>
