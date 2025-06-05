@@ -39,8 +39,8 @@ export default function MotionLoader({ children }: { children: React.ReactNode; 
                                 priority
                                 src="/logo.png"
                                 alt=""
-                                width={300}
-                                height={181}
+                                width={230}
+                                height={111}
                                 className="animate-pulse"
                             />
                         </div>

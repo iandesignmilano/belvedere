@@ -3,6 +3,7 @@ import Hero from "@/components/private/sidebar/Hero"
 import ReservationsList from "@/components/private/reservations/ReservationsList"
 
 // action
+import { verifyAuth } from "@/lib/session"
 import { getReservations } from "@/actions/reservations"
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -10,6 +11,8 @@ import { getReservations } from "@/actions/reservations"
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 export default async function ReservationsPage() {
+
+    const auth = await verifyAuth()
 
     const reservations = await getReservations()
 
@@ -19,7 +22,7 @@ export default async function ReservationsPage() {
         <>
             <Hero path={[{ name: "Prenotazioni" }]} />
             <section className="px-4 pb-4 w-full md:py-2 flex flex-col gap-4">
-                <ReservationsList reservations={reservations} />
+                <ReservationsList reservations={reservations} user={auth.user?.id} />
             </section>
         </>
     )

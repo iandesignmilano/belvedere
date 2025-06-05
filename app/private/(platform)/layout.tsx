@@ -10,6 +10,9 @@ import { SidebarProvider } from "@/components/ui/sidebar"
 // components
 import Bar from "@/components/private/sidebar/Sidebar"
 
+// socket
+import SocketProvider from "@/components/custom/Socket"
+
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -24,11 +27,13 @@ export default async function layout({ children }: { children: React.ReactNode }
 
     // user auth
     return (
-        <SidebarProvider>
-            <Bar />
-            <main className="w-full">
-                {children}
-            </main>
-        </SidebarProvider>
+        <SocketProvider>
+            <SidebarProvider>
+                <Bar />
+                <main className="w-full">
+                    {children}
+                </main>
+            </SidebarProvider>
+        </SocketProvider>
     )
 }

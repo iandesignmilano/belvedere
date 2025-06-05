@@ -88,7 +88,7 @@ export async function createUserAction(formData: UserActionProps) {
         revalidatePath("/private/utenti")
         return { success: true }
     }
-    catch { return { errors: "Errore durante la creazione dell’utente. Riprova." } }
+    catch { return { errors: "Si è verificato un errore, riprova più tardi" } }
 
 }
 
@@ -118,7 +118,7 @@ export async function updateUserAction(id: string, formData: UserActionProps) {
         await db.collection<User>("users").updateOne({ _id: id }, { $set: updateData })
         revalidatePath("/private/utenti")
         return { success: true }
-    } catch { return { errors: "Errore durante l’aggiornamento dell’utente. Riprova." } }
+    } catch { return { errors: "Si è verificato un errore, riprova più tardi" } }
 
 }
 

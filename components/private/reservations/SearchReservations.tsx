@@ -13,7 +13,7 @@ import { Search, Trash } from "lucide-react"
 // interface
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-interface SearchIngredientsProps {
+interface SearchReservationsProps {
     searchData: (val: string) => void
 }
 
@@ -21,7 +21,7 @@ interface SearchIngredientsProps {
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export default function SearchIngredients({ searchData }: SearchIngredientsProps) {
+export default function SearchReservations({ searchData }: SearchReservationsProps) {
 
     const [search, setSearch] = useState("")
 

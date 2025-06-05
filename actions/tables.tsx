@@ -60,7 +60,7 @@ export async function addTableAction(formData: ActionProps) {
         revalidatePath("/private/tavoli")
         return { success: true }
     }
-    catch { return { errors: "Errore durante la creazione dell’utente. Riprova." } }
+    catch { return { errors: "Si è verificato un errore, riprova più tardi" } }
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -79,7 +79,7 @@ export async function updateTableAction(id: string, formData: ActionProps) {
         await db.collection("tables").updateOne({ _id: _id }, { $set: table })
         revalidatePath("/private/tavoli")
         return { success: true }
-    } catch { return { errors: "Errore durante l’aggiornamento dell’utente. Riprova." } }
+    } catch { return { errors: "Si è verificato un errore, riprova più tardi" } }
 
 }
 

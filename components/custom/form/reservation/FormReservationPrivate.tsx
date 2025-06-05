@@ -32,6 +32,7 @@ interface FormReservationPrivateProps {
     children: React.ReactNode
     type: "create" | "update"
     id?: string
+    user?: string
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -90,7 +91,7 @@ const schema = yup.object({
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export default function FormReservationPrivate({ children, type, id }: FormReservationPrivateProps) {
+export default function FormReservationPrivate({ children, type, id, user }: FormReservationPrivateProps) {
 
     const [open, setOpen] = useState(false)
 
@@ -137,7 +138,7 @@ export default function FormReservationPrivate({ children, type, id }: FormReser
 
     async function onSubmitFunction(val: typeof initial) {
         try {
-            const res = type == 'create' ? await addReservationAction(val) : await updateReservationAction(id as string, val)
+            const res = type == 'create' ? await addReservationAction(val, user) : await updateReservationAction(id as string, val)
             if (res.success) {
                 setOpen(false)
                 handleReset(initial)

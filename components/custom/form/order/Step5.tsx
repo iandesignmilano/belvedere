@@ -1,13 +1,23 @@
-import { useState } from "react"
+"use client"
+
+import React, { useState, useEffect, useCallback } from "react"
 
 // shad
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter, DrawerClose } from "@/components/ui/drawer"
 
 // icons
-import { CreditCard, House, Plus } from "lucide-react"
+import { CreditCard, House, Loader2 } from "lucide-react"
+
+// stripe
+import { loadStripe } from "@stripe/stripe-js"
+import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js"
+
+// action
+import { createPaymentIntent } from "@/actions/stripe"
+
+// components
+import { ToastDanger } from "../../Toast"
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // interface
@@ -15,75 +25,143 @@ import { CreditCard, House, Plus } from "lucide-react"
 
 export type initialValue = {
 
-    type: string;
+    type: string
     address: {
-        street?: string;
-        street_number?: string;
-        city?: string;
-        cap?: string;
+        street?: string
+        street_number?: string
+        city?: string
+        cap?: string
     }
 
-    date: string | undefined;
-    time: string;
-
-    fullname: string;
-    email: string;
-    phone: string;
+    date: string | undefined
+    time: string
 
     order: {
-        id: number;
-        name: string;
-        ingredients: string;
-        type: string;
-        price: string;
-        quantity: number;
-        custom: { name: string; price: string; }[];
+        id: number
+        name: string
+        ingredients: string
+        type: string
+        price: string
+        quantity: number
+        custom: { name: string; price: string; }[]
         total: string;
     }[];
 
-    pay: string;
-    success: boolean;
+    pay: string
+    pay_id: string
+    success: boolean
 }
 
 interface Step5Props {
-    values: initialValue;
-    setFieldValue: <K extends keyof initialValue>(field: K, value: initialValue[K], shouldValidate?: boolean) => void;
-    setProgress: React.Dispatch<React.SetStateAction<number>>;
-    progress: number;
+    values: initialValue
+    setFieldValue: <K extends keyof initialValue>(field: K, value: initialValue[K], shouldValidate?: boolean) => void
+    setProgress: React.Dispatch<React.SetStateAction<number>>
+    progress: number
+    isSubmitting: boolean
+    submitForm: () => Promise<void>
 }
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// stripe init
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY!)
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export default function Step5({ values, progress, setProgress, setFieldValue }: Step5Props) {
+export default function Step5({ values, progress, setProgress, setFieldValue, submitForm, isSubmitting }: Step5Props) {
+
+    const type_name: Record<string, string> = { take_away: "Asporto", domicile: "Domicilio" }
+
+    const [sendPay, setSendPay] = useState(false)
+
+    const shipping = "9.00"
 
     // --------------------------------------------------------------
-    // type
+    // total
     // --------------------------------------------------------------
 
-    const type_name: Record<"take_away" | "domicile", string> = {
-        take_away: "Asporto",
-        domicile: "Domicilio"
-    }
+    const getTotal = useCallback(() => {
+        const totalOrderPrice = values.order.reduce((sum, order) => sum + parseFloat(order.total), 0)
+        const commission = totalOrderPrice * 0.015 + 0.25
+        const totalPartial = (totalOrderPrice + commission + 2).toFixed(2).toString()
+        const total = (parseFloat(totalPartial) + parseFloat(shipping)).toFixed(2).toString()
+        return values.type == "domicile" ? total : totalPartial
+    }, [values.order, values.type])
+
+
+    const getServicePrice = useCallback(() => {
+        const totalOrderPrice = values.order.reduce((sum, order) => sum + parseFloat(order.total), 0)
+        const commission = totalOrderPrice * 0.015 + 0.25
+        return (commission + 2).toFixed(2).toString()
+    }, [values.order])
+
+    // --------------------------------------------------------------
+    // pay
+    // --------------------------------------------------------------
+
+    const [clientSecret, setClientSecret] = useState<string | null>(null)
+
+    useEffect(() => {
+        if (values.pay === "card" && clientSecret === null) {
+            createPaymentIntent(parseFloat(getTotal())).then(secret => setClientSecret(secret))
+        }
+    }, [values.pay, getTotal, clientSecret])
 
     // --------------------------------------------------------------
     // order
     // --------------------------------------------------------------
 
-    const sendOrder = () => {
-        if (values.pay == "pay") { }
-        else {
-            setOpen(false)
-            setProgress(progress + 1)
+    async function sendOrder() { await submitForm() }
+
+    // --------------------------------------------------------------
+    // code
+    // --------------------------------------------------------------
+
+    function StripeForm() {
+        const stripe = useStripe()
+        const elements = useElements()
+
+        const payOrder = async () => {
+            if (!stripe || !elements) return
+            setSendPay(true)
+            const result = await stripe.confirmPayment({ elements, redirect: "if_required" })
+            if (result.error) {
+                ToastDanger()
+                setSendPay(false)
+            }
+            else {
+                setFieldValue("success", true)
+                setFieldValue("pay_id", result.paymentIntent.id)
+                await submitForm()
+                setSendPay(false)
+            }
         }
+
+        return (
+            <>
+                <PaymentElement />
+                <div className="lg:col-span-2 flex max-lg:flex-col-reverse gap-4 justify-between">
+                    <Button
+                        disabled={isSubmitting}
+                        className="custom-button custom-button-outline !text-lg"
+                        variant="outline" type="button" onClick={() => setProgress(progress - 1)}
+                    >
+                        Indietro
+                    </Button>
+                    <Button
+                        onClick={payOrder} type="button" disabled={!values.pay || isSubmitting || sendPay}
+                        className="custom-button !text-lg max-lg:grow bg-green-600 hover:bg-green-600/90"
+                    >
+                        {isSubmitting || sendPay && <Loader2 className="size-6 animate-spin" />}
+                        Paga ordine
+                    </Button>
+                </div>
+            </>
+        )
     }
-
-    // --------------------------------------------------------------
-    // drawer
-    // --------------------------------------------------------------
-
-    const [open, setOpen] = useState(false)
 
     // --------------------------------------------------------------
     // code
@@ -91,148 +169,119 @@ export default function Step5({ values, progress, setProgress, setFieldValue }: 
 
     return (
         <>
-            <div>
-                <h3 className="mb-2 text-primary font-title text-4xl">Il tuo ordine</h3>
-                <Accordion type="single" collapsible className="bg-input rounded-xl px-4 lg:col-span-2">
-                    {values.order.map((el, i) => (
-                        <AccordionItem key={i} value={`item-${i}`} className="border-slate-300">
-                            <AccordionTrigger className="text-primary text-lg items-center">{el.name} X {el.quantity}</AccordionTrigger>
-                            <AccordionContent className="space-y-4">
-                                <p className="text-muted-foreground text-sm">{el.ingredients}</p>
-                                {el.custom.length > 0 && (
-                                    <>
-                                        <Separator className="bg-slate-300" />
-                                        {el.custom.map((add, i) => (
-                                            <div key={i} className="text-sm flex items-center gap-2">
-                                                <Plus className="size-4 text-green-600" />
-                                                <span>{add.name}</span>
-                                                <span>{add.price}€</span>
-                                            </div>
-                                        ))}
-                                    </>
-                                )}
-                                <Separator className="bg-slate-300" />
-                                <p className="text-base">Porzione: {el.type}</p>
-                                <p className="text-base">Prezzo Porzione: {el.price}€</p>
-                                <p className="text-base">Quantità: {el.quantity}</p>
-                                <Separator className="bg-slate-300" />
-                                <p className="text-base font-bold">Totale: {el.total}€</p>
-                            </AccordionContent>
-                        </AccordionItem>
-                    ))}
-                </Accordion>
-            </div>
 
-            <div>
-                <h3 className="mb-2 text-primary font-title text-4xl">Dettagli</h3>
-                <Accordion type="single" collapsible className="bg-input rounded-xl px-4 lg:col-span-2">
-                    <AccordionItem value="details-1" className="border-slate-300">
-                        <AccordionTrigger className="text-primary text-lg items-center">Consegna</AccordionTrigger>
-                        <AccordionContent className="space-y-4">
-                            <Separator className="bg-slate-300" />
-                            <p className="text-base">Consegna: {type_name[values.type as keyof typeof type_name]}</p>
-                            {values.type == "domicile" && (
-                                <>
-                                    <Separator className="bg-slate-300" />
-                                    <p className="text-base">Indirizzo: {values.address.street}</p>
-                                    <p className="text-base">Numero civico: {values.address.street_number}</p>
-                                    <p className="text-base">Cap: {values.address.cap}</p>
-                                    <p className="text-base">Città: {values.address.city}</p>
-                                </>
-                            )}
-                        </AccordionContent>
-                    </AccordionItem>
-                    <AccordionItem value="details-2" className="border-slate-300">
-                        <AccordionTrigger className="text-primary text-lg items-center">Data e ora</AccordionTrigger>
-                        <AccordionContent className="space-y-4">
-                            <Separator className="bg-slate-300" />
-                            <p className="text-base">Data: {values.date}</p>
-                            <p className="text-base">Ora: {values.time}</p>
-                        </AccordionContent>
-                    </AccordionItem>
-                    <AccordionItem value="details-3" className="border-slate-300">
-                        <AccordionTrigger className="text-primary text-lg items-center">I tuoi dati</AccordionTrigger>
-                        <AccordionContent className="space-y-4">
-                            <Separator className="bg-slate-300" />
-                            <p className="text-base">Nome e Cognome: {values.fullname}</p>
-                            <p className="text-base">Telefono: {values.phone}</p>
-                            <p className="text-base">Email: {values.email}</p>
-                        </AccordionContent>
-                    </AccordionItem>
-                </Accordion>
-            </div>
-
-            <div className="lg:col-span-2 flex gap-4 justify-between">
-                <Button
-                    className="custom-button custom-button-outline !text-lg"
-                    variant="outline"
-                    type="button"
-                    onClick={() => setProgress(progress - 1)}
-                >
-                    Indietro
-                </Button>
-                <Button
-                    type="button"
-                    className="custom-button !text-lg max-lg:grow"
-                    onClick={() => setOpen(true)}
-                >
-                    Conferma
-                </Button>
-            </div>
-
-            <Drawer open={open} onOpenChange={() => setOpen(false)}>
-                <DrawerContent onInteractOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()}>
-                    <DrawerHeader>
-                        <DrawerTitle className="text-4xl text-primary font-title">Metodo di pagamento</DrawerTitle>
-                        <DrawerDescription className="text-base">Pagamento alla consegna o con carta.</DrawerDescription>
-                    </DrawerHeader>
+            <div className="lg:col-span-2 bg-slate-100 p-4 rounded-md">
+                <div className="space-y-2">
+                    <p className="text-sm">Data: {values.date}</p>
+                    <p className="text-sm">Ora: {values.time}</p>
                     <Separator />
+                    <p className="text-sm">Consegna: {type_name[values.type]}</p>
+                    {values.type == "domicile" && (
+                        <>
+                            <p className="text-sm">Indirizzo: {values.address.street}, {values.address.street_number}</p>
+                            <p className="text-sm">Città: {values.address.city} ({values.address.cap})</p>
+                        </>
+                    )}
+                </div>
+            </div>
 
-                    <section className="px-4 mt-4 overflow-y-auto flex-1">
-                        <div className="grid lg:grid-cols-2 gap-4">
-                            <div
-                                className={`custom-form-box ${values.pay == "home" && "custom-form-box-active"}`}
-                                onClick={() => setFieldValue("pay", "home")}
-                            >
-                                <House className="size-8" />
-                                <span>Alla consegna</span>
-                            </div>
-                            <div
-                                className={`custom-form-box ${values.pay == "card" && "custom-form-box-active"}`}
-                                onClick={() => setFieldValue("pay", "home")}
-                            >
-                                <CreditCard className="size-8" />
-                                <span>Carta</span>
-                            </div>
-                        </div>
-                    </section>
+            <div className="lg:col-span-2 bg-slate-100 p-4 rounded-md">
+                <div>
+                    {values.order.map((el, i) => {
 
-                    <DrawerFooter className="lg:items-end">
+                        const parzial = (parseFloat(el.price) * el.quantity).toFixed(2).toString()
+
+                        return (
+                            <React.Fragment key={i}>
+                                <div className="space-y-2">
+                                    <h4>{el.name} x {el.quantity}</h4>
+                                    <p className="text-sm flex items-center justify-between gap-2">
+                                        <span>Prezzo:</span>
+                                        <span>{parzial}€</span>
+                                    </p>
+                                    {el.custom && el.custom.map((add, i) => (
+                                        <p key={i} className="text-sm flex items-center justify-between gap-2">
+                                            <span>{add.name}</span>
+                                            <span>{(parseFloat(add.price) * el.quantity).toFixed(2).toString()}€</span>
+                                        </p>
+                                    ))}
+                                    <p className="text-sm flex items-center justify-between gap-2">
+                                        <span>Totale:</span>
+                                        <span>{el.total}€</span>
+                                    </p>
+                                </div>
+                                <Separator className="my-2" />
+                            </React.Fragment>
+                        )
+                    })}
+                    <div className="space-y-2">
+                        {values.type == "domicile" && (
+                            <p className="text-sm flex items-center justify-between gap-2">
+                                <span>Spedizione:</span>
+                                <span>{shipping}€</span>
+                            </p>
+                        )}
+                        <p className="text-sm flex items-center justify-between gap-2">
+                            <span>Commissioni:</span>
+                            <span>{getServicePrice()}€</span>
+                        </p>
                         <Separator className="my-2" />
-                        <div className="text-right space-y-2">
-                            <div className="text-sm">Totale parziale: 30.00€</div>
-                            <div className="text-sm">Spese di spedizione: 9.00€</div>
-                            <div className="text-primary text-lg">Totale: 39.00€</div>
-                        </div>
-                        <Separator className="my-2" />
-                        <section className="flex items-center gap-4 justify-between">
-                            <DrawerClose asChild onClick={() => setOpen(false)}>
-                                <Button className="custom-button custom-button-outline !text-lg" variant="outline">
-                                    Annulla
-                                </Button>
-                            </DrawerClose>
-                            <DrawerClose asChild onClick={sendOrder}>
-                                <Button
-                                    disabled={!values.pay}
-                                    className="custom-button !text-lg max-lg:grow bg-green-600 hover:bg-green-600/90"
-                                >
-                                    {values.pay == "card" ? "Paga ordine" : "Conferma ordine"}
-                                </Button>
-                            </DrawerClose>
-                        </section>
-                    </DrawerFooter>
-                </DrawerContent>
-            </Drawer>
+                        <p className="text-lg font-bold flex items-center justify-between gap-2">
+                            <span>Totale:</span>
+                            <span>{getTotal()}€</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div className="lg:col-span-2 grid grid-cols-2 gap-4">
+                <div
+                    className={`custom-form-box ${values.pay == "home" && "custom-form-box-active"}`}
+                    onClick={() => setFieldValue("pay", "home")}
+                >
+                    <House className="size-8" />
+                    <span>Alla consegna</span>
+                </div>
+                <div
+                    className={`custom-form-box ${values.pay == "card" && "custom-form-box-active"}`}
+                    onClick={() => setFieldValue("pay", "card")}
+                >
+                    <CreditCard className="size-8" />
+                    <span>Carta</span>
+                </div>
+            </div>
+
+            {values.pay === "card" && clientSecret && (
+                <div className="lg:col-span-2 space-y-4">
+                    <Elements options={{ clientSecret }} stripe={stripePromise}>
+                        <StripeForm />
+                    </Elements>
+                </div>
+            )}
+
+
+            {values.pay == "home" && (
+                <div className="lg:col-span-2 flex max-lg:flex-col-reverse gap-4 justify-between">
+                    <Button
+                        className="custom-button custom-button-outline !text-lg"
+                        variant="outline"
+                        type="button"
+                        disabled={isSubmitting}
+                        onClick={() => setProgress(progress - 1)}
+                    >
+                        Indietro
+                    </Button>
+                    <Button
+                        onClick={sendOrder}
+                        type="button"
+                        disabled={!values.pay || isSubmitting}
+                        className="custom-button !text-lg max-lg:grow bg-green-600 hover:bg-green-600/90"
+                    >
+                        {isSubmitting && <Loader2 className="size-6 animate-spin" />}
+                        Conferma ordine
+                    </Button>
+                </div>
+            )}
         </>
     )
 }

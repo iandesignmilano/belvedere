@@ -4,7 +4,7 @@
 import Link from "next/link"
 
 // motion
-import { motion } from "motion/react"
+import { animate, motion } from "motion/react"
 
 // shad
 import { Button } from "@/components/ui/button"
@@ -17,14 +17,15 @@ import { useIsMobile } from "@/hooks/use-mobile"
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 interface MotionTextProps {
-    title?: string | null;
-    text?: string[];
-    multitext?: boolean;
+    title?: string | null
+    text?: string[]
+    multitext?: boolean
     button?: {
-        text: string;
-        link: string;
-        className?: string;
-    } | null;
+        text: string
+        link: string
+        className?: string
+    } | null
+    animate?: boolean
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -33,6 +34,14 @@ interface MotionTextProps {
 
 const anim = {
     initial: { opacity: 0 },
+    animate: (delay: number, isMobile: boolean) => ({
+        opacity: 1,
+        transition: {
+            duration: 0.5,
+            delay: isMobile ? 0 : delay,
+            ease: "easeInOut"
+        }
+    }),
     whileInView: (delay: number, isMobile: boolean) => ({
         opacity: 1,
         transition: {
@@ -47,7 +56,7 @@ const anim = {
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export default function MotionText({ title, text, multitext = false, button }: MotionTextProps) {
+export default function MotionText({ title, text, multitext = false, button, animate = false }: MotionTextProps) {
 
     const isMobile = useIsMobile()
 
@@ -57,7 +66,8 @@ export default function MotionText({ title, text, multitext = false, button }: M
                 <motion.h2
                     key={title}
                     initial={anim.initial}
-                    whileInView={anim.whileInView(0, isMobile)}
+                    animate={animate ? anim.animate(0, isMobile) : undefined}
+                    whileInView={animate ? undefined : anim.whileInView(0, isMobile)}
                     className="custom-title font-title"
                 >
                     {title}
@@ -69,7 +79,8 @@ export default function MotionText({ title, text, multitext = false, button }: M
                     key={index}
                     initial={anim.initial}
                     className="text-lg"
-                    whileInView={anim.whileInView((index + 1) * 0.2, isMobile)}
+                    animate={animate ? anim.animate((index + 1) * 0.2, isMobile) : undefined}
+                    whileInView={animate ? undefined : anim.whileInView((index + 1) * 0.2, isMobile)}
                 >
                     {single}
                 </motion.p>
@@ -79,7 +90,8 @@ export default function MotionText({ title, text, multitext = false, button }: M
                 <motion.p
                     initial={anim.initial}
                     className="text-lg"
-                    whileInView={anim.whileInView(0.2, isMobile)}
+                    animate={animate ? anim.animate(0.2, isMobile) : undefined}
+                    whileInView={animate ? undefined : anim.whileInView(0.2, isMobile)}
                 >
                     {text[0]}
                     {text[1] && <br className="max-lg:hidden" />}
@@ -90,7 +102,8 @@ export default function MotionText({ title, text, multitext = false, button }: M
             {button && (
                 <motion.div
                     initial={anim.initial}
-                    whileInView={anim.whileInView(text ? text.length * 0.4 : 0.2, isMobile)}
+                    animate={animate ? anim.animate(text ? text.length * 0.4 : 0.2, isMobile) : undefined}
+                    whileInView={animate ? undefined : anim.whileInView(text ? text.length * 0.4 : 0.2, isMobile)}
                     className={`max-lg:w-full ${button.className}`}
                 >
                     <Link href={button.link}>

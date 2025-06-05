@@ -15,6 +15,10 @@ import nodemailer from "nodemailer"
 // date
 import { format } from "date-fns"
 
+// lib
+import { verifyAuth } from '@/lib/session'
+import { generateCode } from '@/lib/code'
+
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // conf
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -90,6 +94,32 @@ export async function getReservations() {
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// get reservations by date
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+export async function getReservationsByDate(date: string) {
+
+    const reservations = await db
+        .collection("reservations")
+        .find({ date: date })
+        .sort({ time: 1 })
+        .toArray()
+
+    const result = reservations.map((el) => ({
+        _id: el._id.toString(),
+        fullname: el.fullname,
+        email: el.email,
+        phone: el.phone,
+        people: el.people,
+        date: el.date,
+        time: el.time,
+        code: el.code
+    }))
+
+    return result
+}
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // get reservation
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -113,14 +143,15 @@ export async function getReservation(id: string) {
 // add reservations
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function generateCode(length = 5) {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-    let result = ''
-    for (let i = 0; i < length; i++) result += chars.charAt(Math.floor(Math.random() * chars.length))
-    return result
-}
+export async function addReservationAction(formData: AddProps, user?: string) {
 
-export async function addReservationAction(formData: AddProps) {
+    // today
+    const today = format(new Date(), "dd-MM-yyyy")
+
+    // check
+    let check_user = false
+    const auth = await verifyAuth()
+    if (auth.user?.id && user && auth.user.id == user) check_user = true
 
     // data
     const { fullname, email, phone, people, date, time } = formData
@@ -146,12 +177,23 @@ export async function addReservationAction(formData: AddProps) {
 
     try {
         await db.collection("reservations").insertOne(reservation)
+
+        // not user request and date is today
+        if (!check_user && date == today) {
+            await fetch('http://localhost:3001/notify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: 'Nuova prenotazione' })
+            })
+        }
+
         await transporter.verify()
         await transporter.sendMail(message)
+
         revalidatePath("/private/prenotazioni")
         return { success: true }
     }
-    catch { return { errors: "Errore durante la creazione dell’utente. Riprova." } }
+    catch { return { errors: "Si è verificato un errore, riprova più tardi" } }
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -170,7 +212,7 @@ export async function updateReservationAction(id: string, formData: UpdateProps)
         await db.collection("reservations").updateOne({ _id: _id }, { $set: reservation })
         revalidatePath("/private/prenotazioni")
         return { success: true }
-    } catch { return { errors: "Errore durante l’aggiornamento dell’utente. Riprova." } }
+    } catch { return { errors: "Si è verificato un errore, riprova più tardi" } }
 
 }
 

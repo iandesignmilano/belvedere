@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 
 // shad
 import { Button } from "../../ui/button"
@@ -23,19 +23,32 @@ import FormIngredients from "@/components/custom/form/FormIngredients"
 
 export default function IngredientsList({ ingredients }: { ingredients: IngredientsProps[] }) {
 
-    const [ingredientsList, setIngredientsList] = useState<IngredientsProps[]>(ingredients)
+    // --------------------------------------------------------------
+    // data
+    // --------------------------------------------------------------
 
-    function filterData(value: string) {
+    const [ingredientsList, setIngredientsList] = useState<IngredientsProps[]>(ingredients)
+    useEffect(() => { setIngredientsList(ingredients) }, [ingredients])
+
+    // --------------------------------------------------------------
+    // search
+    // --------------------------------------------------------------
+
+    function searchData(value: string) {
         if (!value) setIngredientsList(ingredients)
         const filtered = ingredients.filter((el) => el.name.toLowerCase().includes(value.toLowerCase()))
         setIngredientsList(filtered)
     }
 
+    // --------------------------------------------------------------
+    // code
+    // --------------------------------------------------------------
+
     return (
         <>
             <div className="grid lg:grid-cols-2 gap-4">
                 <div>
-                    <SearchIngredients filterData={filterData} />
+                    <SearchIngredients searchData={searchData} />
                 </div>
                 <div className="text-right">
                     <FormIngredients type="create">
@@ -44,6 +57,9 @@ export default function IngredientsList({ ingredients }: { ingredients: Ingredie
                 </div>
             </div>
             <Separator />
+            {ingredientsList.length == 0 && (
+                <h2 className="text-xl text-destructive">Nessun ingrediente aggiunto</h2>
+            )}
             {ingredientsList.map((el) => (
                 <React.Fragment key={el._id}>
                     <div className="space-y-2">

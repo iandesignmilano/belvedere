@@ -4,6 +4,7 @@
     "private": true,
     "scripts": {
         "dev": "next dev --turbopack",
+        "dev:ws": "tsx ws-server.ts",
         "build": "next build",
         "start": "next start",
         "lint": "next lint"
@@ -22,6 +23,8 @@
         "@radix-ui/react-slot": "^1.2.3",
         "@radix-ui/react-switch": "^1.2.5",
         "@radix-ui/react-tooltip": "^1.2.7",
+        "@stripe/react-stripe-js": "^3.7.0",
+        "@stripe/stripe-js": "^7.3.1",
         "canvas-confetti": "^1.9.3",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
@@ -38,22 +41,28 @@
         "react-day-picker": "^8.10.1",
         "react-dom": "^19.0.0",
         "sonner": "^2.0.3",
+        "stripe": "^18.2.1",
         "tailwind-merge": "^3.2.0",
         "vaul": "^1.1.2",
+        "ws": "^8.18.2",
         "yup": "^1.6.1"
     },
     "devDependencies": {
         "@eslint/eslintrc": "^3",
         "@tailwindcss/postcss": "^4",
         "@types/canvas-confetti": "^1.9.0",
-        "@types/node": "^20",
+        "@types/express": "^5.0.2",
+        "@types/node": "^20.17.57",
         "@types/nodemailer": "^6.4.17",
         "@types/react": "^19",
         "@types/react-dom": "^19",
+        "@types/ws": "^8.18.1",
         "eslint": "^9",
         "eslint-config-next": "15.3.2",
         "tailwindcss": "^4",
+        "ts-node": "^10.9.2",
+        "tsx": "^4.19.4",
         "tw-animate-css": "^1.2.9",
-        "typescript": "^5"
+        "typescript": "^5.8.3"
     }
 }

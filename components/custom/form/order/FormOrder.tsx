@@ -13,6 +13,10 @@ import Step2 from './Step2'
 import Step3 from './Step3'
 import Step4 from './Step4'
 import Step5 from './Step5'
+import { ToastDanger } from '../../Toast'
+
+// action
+import { addOrderAction } from '@/actions/orders'
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // interface
@@ -197,6 +201,7 @@ const formInitialValue = {
     phone: "",
 
     pay: "",
+    pay_id: "",
     success: false
 }
 
@@ -220,9 +225,12 @@ export default function FormOrder({ progress, setProgress }: FormOrderProps) {
     // send
     // --------------------------------------------------------------
 
-    const onSubmitFunction = (values: typeof formInitialValue) => {
-        console.log(values)
-        setProgress(progress + 1)
+    async function onSubmitFunction(val: typeof formInitialValue) {
+        try {
+            const res = await addOrderAction(val)
+            if (res.success) setProgress(progress + 1)
+            if (res.errors) ToastDanger()
+        } catch { ToastDanger() }
     }
 
     // --------------------------------------------------------------
@@ -248,7 +256,6 @@ export default function FormOrder({ progress, setProgress }: FormOrderProps) {
             whileInView={anim.whileInView}
             transition={anim.transition}
             className="grid lg:grid-cols-2 gap-8 text-start"
-            onSubmit={formik.handleSubmit}
         >
             {formStep[progress]}
         </motion.form>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useCallback } from "react"
 
 // shad
 import { Label } from "@/components/ui/label"
@@ -81,20 +81,18 @@ export default function Step1DrawerForm({ selected, values, errors, touched, set
     const touched_element = typeof touched_data === "object" && touched_data !== null ? touched_data : undefined
 
     // total
-    const getTotal = (price: string, qta: number) => {
-        let total = ""
-        if (!isNaN(qta) && price) total = (parseFloat(price) * qta).toFixed(2).toString()
-        if (isNaN(qta) && price) total = price
-        if (isNaN(qta) && !price) total = ""
-        setFieldValue(`order[${index}].total`, total)
-    }
+    const getTotal = useCallback((price: string, qta: number) => {
+        const basePrice = parseFloat(price)
 
-    const getExtraTotal = (price: string, operator: string) => {
-        let newTotal = data.total
-        if (operator === "+") newTotal = (parseFloat(newTotal) + parseFloat(price)).toFixed(2).toString()
-        if (operator === "-") newTotal = (parseFloat(newTotal) - parseFloat(price)).toFixed(2).toString()
-        setFieldValue(`order[${index}].total`, newTotal)
-    }
+        const extras = data.custom || []
+        const extrasSum = extras.reduce((sum, item) => {
+            const price = parseFloat(item.price) || 0
+            return sum + price
+        }, 0)
+
+        const total = ((basePrice + extrasSum) * qta).toFixed(2).toString()
+        setFieldValue(`order[${index}].total`, total)
+    }, [data.custom, setFieldValue, index])
 
     // --------------------------------------------------------------
     // code
@@ -208,15 +206,19 @@ export default function Step1DrawerForm({ selected, values, errors, touched, set
                                                 const custom = data.custom || []
                                                 const isChecked = custom.some((item) => item.name === el.name)
 
+                                                let updated = []
                                                 if (isChecked) {
-                                                    const updated = custom.filter((item) => item.name !== el.name)
-                                                    setFieldValue(`order[${index}].custom`, updated.length ? updated : [])
-                                                    getExtraTotal(el.price, "-")
+                                                    updated = custom.filter((item) => item.name !== el.name)
                                                 } else {
-                                                    const updated = [...custom, { name: el.name, price: el.price }]
-                                                    setFieldValue(`order[${index}].custom`, updated)
-                                                    getExtraTotal(el.price, "+")
+                                                    updated = [...custom, { name: el.name, price: el.price }]
                                                 }
+
+                                                setFieldValue(`order[${index}].custom`, updated)
+
+                                                const basePrice = parseFloat(data.price)
+                                                const extrasSum = updated.reduce((sum, item) => sum + parseFloat(item.price || "0"), 0)
+                                                const total = ((basePrice + extrasSum) * data.quantity).toFixed(2).toString()
+                                                setFieldValue(`order[${index}].total`, total)
                                             }}
                                         >
                                             <Checkbox

@@ -4,7 +4,7 @@ import { useState } from "react"
 
 // shad
 import { Button } from "../../ui/button"
-import { Input } from "@/components/ui/input"
+import { DatePicker } from "@/components/ui/datePicker"
 
 // icons
 import { Search, Trash } from "lucide-react"
@@ -13,41 +13,42 @@ import { Search, Trash } from "lucide-react"
 // interface
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-interface SearchIngredientsProps {
-    searchData: (val: string) => void
+interface DateReservationsProps {
+    searchDataByDate: (val: string) => void
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export default function SearchIngredients({ searchData }: SearchIngredientsProps) {
+export default function DateReservations({ searchDataByDate }: DateReservationsProps) {
 
-    const [search, setSearch] = useState("")
+    const [dt, setDt] = useState("")
 
     return (
         <section className="flex items-center gap-2">
-            <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Cerca..."
+            <DatePicker
+                className="w-auto grow"
+                placeholder="Cerca per giorno"
+                value={dt}
+                onChange={(date) => setDt(date || "")}
             />
             <Button
                 size="icon"
-                disabled={!search}
+                disabled={!dt}
                 className="rounded-full cursor-pointer"
-                onClick={() => searchData(search)}
+                onClick={() => searchDataByDate(dt)}
             >
                 <Search />
             </Button>
-            {search.length > 0 && (
+            {dt.length > 0 && (
                 <Button
                     variant="destructive"
                     size="icon"
                     className="rounded-full cursor-pointer"
                     onClick={() => {
-                        setSearch("")
-                        searchData("")
+                        setDt("")
+                        searchDataByDate("")
                     }}
                 >
                     <Trash />

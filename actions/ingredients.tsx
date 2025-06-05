@@ -61,7 +61,7 @@ export async function addIngredientAction(formData: ActionProps) {
         revalidatePath("/ordina")
         return { success: true }
     }
-    catch { return { errors: "Errore durante la creazione dell’utente. Riprova." } }
+    catch { return { errors: "Si è verificato un errore, riprova più tardi" } }
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -81,7 +81,7 @@ export async function updateIngredientAction(id: string, formData: ActionProps) 
         revalidatePath("/private/ingredienti")
         revalidatePath("/ordina")
         return { success: true }
-    } catch { return { errors: "Errore durante l’aggiornamento dell’utente. Riprova." } }
+    } catch { return { errors: "Si è verificato un errore, riprova più tardi" } }
 
 }
 
