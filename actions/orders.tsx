@@ -106,6 +106,7 @@ export async function getOrders() {
         type: el.type,
         address: el.address,
         pay: el.pay,
+        pay_id: el.pay_id,
         success: el.success,
         order: el.order
     }))

@@ -4,7 +4,7 @@
 import Link from "next/link"
 
 // motion
-import { animate, motion } from "motion/react"
+import { motion } from "motion/react"
 
 // shad
 import { Button } from "@/components/ui/button"
