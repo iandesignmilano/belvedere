@@ -175,7 +175,7 @@ const stepSchemas = [
             .string()
             .required("Il numero di telefono è obbligatorio")
             .matches(/^\+?[0-9\s\-]{7,15}$/, "Inserisci un numero di telefono valido")
-    }),
+    })
 ]
 
 const formInitialValue = {
@@ -201,8 +201,7 @@ const formInitialValue = {
     phone: "",
 
     pay: "",
-    pay_id: "",
-    success: false
+    pay_id: ""
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

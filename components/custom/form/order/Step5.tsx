@@ -49,7 +49,6 @@ export type initialValue = {
 
     pay: string
     pay_id: string
-    success: boolean
 }
 
 interface Step5Props {
@@ -74,8 +73,6 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY!)
 export default function Step5({ values, progress, setProgress, setFieldValue, submitForm, isSubmitting }: Step5Props) {
 
     const type_name: Record<string, string> = { take_away: "Asporto", domicile: "Domicilio" }
-
-    const [sendPay, setSendPay] = useState(false)
 
     const shipping = "9.00"
 
@@ -106,7 +103,9 @@ export default function Step5({ values, progress, setProgress, setFieldValue, su
 
     useEffect(() => {
         if (values.pay === "card" && clientSecret === null) {
-            createPaymentIntent(parseFloat(getTotal())).then(secret => setClientSecret(secret))
+            createPaymentIntent(parseFloat(getTotal()))
+                .then(secret => setClientSecret(secret))
+                .catch(() => ToastDanger())
         }
     }, [values.pay, getTotal, clientSecret])
 
@@ -121,6 +120,9 @@ export default function Step5({ values, progress, setProgress, setFieldValue, su
     // --------------------------------------------------------------
 
     function StripeForm() {
+
+        const [sendPay, setSendPay] = useState(false)
+
         const stripe = useStripe()
         const elements = useElements()
 
@@ -128,13 +130,15 @@ export default function Step5({ values, progress, setProgress, setFieldValue, su
             if (!stripe || !elements) return
             setSendPay(true)
             const result = await stripe.confirmPayment({ elements, redirect: "if_required" })
+
             if (result.error) {
                 ToastDanger()
                 setSendPay(false)
             }
+
             else {
-                setFieldValue("success", true)
-                setFieldValue("pay_id", result.paymentIntent.id)
+                setFieldValue("pay_id", result.paymentIntent.id, false)
+                await new Promise(resolve => setTimeout(resolve, 10))
                 await submitForm()
                 setSendPay(false)
             }
@@ -142,17 +146,21 @@ export default function Step5({ values, progress, setProgress, setFieldValue, su
 
         return (
             <>
-                <PaymentElement />
+                {stripe && elements && values.pay === 'card' && < PaymentElement />}
                 <div className="lg:col-span-2 flex max-lg:flex-col-reverse gap-4 justify-between">
                     <Button
-                        disabled={isSubmitting}
+                        disabled={isSubmitting || sendPay}
                         className="custom-button custom-button-outline !text-lg"
-                        variant="outline" type="button" onClick={() => setProgress(progress - 1)}
+                        variant="outline"
+                        type="button"
+                        onClick={() => setProgress(progress - 1)}
                     >
                         Indietro
                     </Button>
                     <Button
-                        onClick={payOrder} type="button" disabled={!values.pay || isSubmitting || sendPay}
+                        onClick={payOrder}
+                        type="button"
+                        disabled={!values.pay || isSubmitting || sendPay}
                         className="custom-button !text-lg max-lg:grow bg-green-600 hover:bg-green-600/90"
                     >
                         {isSubmitting || sendPay && <Loader2 className="size-6 animate-spin" />}
@@ -258,7 +266,6 @@ export default function Step5({ values, progress, setProgress, setFieldValue, su
                     </Elements>
                 </div>
             )}
-
 
             {values.pay == "home" && (
                 <div className="lg:col-span-2 flex max-lg:flex-col-reverse gap-4 justify-between">

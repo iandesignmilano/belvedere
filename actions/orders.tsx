@@ -70,7 +70,6 @@ type OrderBase = {
     phone: string
     pay: string
     pay_id: string
-    success: boolean
     order: ItemsProps[]
 }
 
@@ -107,7 +106,6 @@ export async function getOrders() {
         address: el.address,
         pay: el.pay,
         pay_id: el.pay_id,
-        success: el.success,
         order: el.order
     }))
 
