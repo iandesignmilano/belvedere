@@ -48,7 +48,7 @@ export default function SocketProvider({ children }: { children: React.ReactNode
         const reservationAudio = new Audio('/audio/reservation.mp3')
         const orderAudio = new Audio('/audio/order.mp3')
 
-        const socket = new WebSocket('ws://localhost:3001')
+        const socket = new WebSocket('ws://localhost:4001')
         socket.onmessage = async (event) => {
 
             if (event.data.includes("prenotazione")) {
