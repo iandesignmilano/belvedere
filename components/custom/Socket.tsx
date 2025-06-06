@@ -44,8 +44,13 @@ export default function SocketProvider({ children }: { children: React.ReactNode
 
     useEffect(() => {
 
+        // chrome://settings/content/sound
+        // abilito permessi sito
         const reservationAudio = new Audio('/audio/reservation.mp3')
+        reservationAudio.load()
+
         const orderAudio = new Audio('/audio/order.mp3')
+        orderAudio.load()
 
         const socket = new WebSocket(process.env.NEXT_PUBLIC_WS_URL as string)
 
@@ -56,16 +61,16 @@ export default function SocketProvider({ children }: { children: React.ReactNode
         socket.onmessage = async (event) => {
 
             if (event.data.includes("prenotazione")) {
-                reservationAudio.play().catch(() => { })
+                reservationAudio.play().catch((err) => { console.log(err) })
                 setUpdateData("reservation")
             }
 
             if (event.data.includes("ordine")) {
-                orderAudio.play().catch(() => { })
+                orderAudio.play().catch((err) => { console.log(err) })
                 setUpdateData("order")
             }
 
-            ToastSuccess(event.data)
+            ToastSuccess(event.data || "")
         }
         return () => socket.close()
     }, [])
