@@ -13,7 +13,7 @@ import express from 'express'
 
 const app = express()
 const server = http.createServer(app)
-const wss = new WebSocketServer({ noServer: true })
+const wss = new WebSocketServer({ server, path: '/ws' })
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // connect
