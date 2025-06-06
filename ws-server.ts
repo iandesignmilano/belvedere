@@ -20,7 +20,7 @@ const wss = new WebSocketServer({ server })
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 wss.on('connection', (ws) => {
-    console.log('🟢 Client connesso via WebSocket')
+    console.log('Client connesso via WebSocket')
     ws.on('message', (msg) => console.log('Messaggio ricevuto:', msg.toString()))
     ws.on('close', () => console.log('Client disconnesso'))
 })
@@ -41,4 +41,4 @@ app.post('/notify', (req, res) => {
 // server
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-server.listen(4001, () => console.log('WebSocket attiva sulla porta 4001'))
+server.listen(3002, () => console.log('WebSocket attiva sulla porta 3002'))

@@ -49,7 +49,7 @@ export default function SocketProvider({ children }: { children: React.ReactNode
 
         const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws'
         const host = window.location.hostname === 'localhost' ? 'localhost' : '49.12.66.4'
-        const socket = new WebSocket(`${protocol}://${host}:4001`)
+        const socket = new WebSocket(`${protocol}://${host}:3002`)
 
         socket.onopen = () => console.log('WebSocket connesso')
         socket.onerror = (error) => console.error('WebSocket errore:', error)
