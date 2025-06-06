@@ -180,7 +180,7 @@ export async function addReservationAction(formData: AddProps, user?: string) {
 
         // not user request and date is today
         if (!check_user && date == today) {
-            await fetch(`${process.env.NEXT_PUBLIC_WS_API_URL}/notify`, {
+            await fetch(process.env.NEXT_PUBLIC_WS_API_URL as string, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message: 'Nuova prenotazione' })
