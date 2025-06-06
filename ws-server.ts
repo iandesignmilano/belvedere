@@ -19,7 +19,11 @@ const wss = new WebSocketServer({ server })
 // connect
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-wss.on('connection', () => console.log('Client connesso via WebSocket'))
+wss.on('connection', (ws) => {
+    console.log('🟢 Client connesso via WebSocket')
+    ws.on('message', (msg) => console.log('Messaggio ricevuto:', msg.toString()))
+    ws.on('close', () => console.log('Client disconnesso'))
+})
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // send

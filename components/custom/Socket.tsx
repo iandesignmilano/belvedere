@@ -20,7 +20,6 @@ type SocketContextType = {
 
 const SocketContext = createContext<SocketContextType | undefined>(undefined)
 
-
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // hook
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -48,7 +47,14 @@ export default function SocketProvider({ children }: { children: React.ReactNode
         const reservationAudio = new Audio('/audio/reservation.mp3')
         const orderAudio = new Audio('/audio/order.mp3')
 
-        const socket = new WebSocket('ws://localhost:4001')
+        const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws'
+        const host = window.location.hostname === 'localhost' ? 'localhost' : '49.12.66.4'
+        const socket = new WebSocket(`${protocol}://${host}:4001`)
+
+        socket.onopen = () => console.log('WebSocket connesso')
+        socket.onerror = (error) => console.error('WebSocket errore:', error)
+        socket.onclose = () => console.log('WebSocket chiuso')
+
         socket.onmessage = async (event) => {
 
             if (event.data.includes("prenotazione")) {
