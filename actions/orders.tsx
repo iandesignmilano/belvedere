@@ -206,7 +206,7 @@ export async function addOrderAction(formData: AddOrderProps, user?: string) {
 
         // not user request and date is today
         if (!check_user && formData.date == today) {
-            await fetch('http://localhost:3001/notify', {
+            await fetch(`${process.env.NEXT_PUBLIC_WS_API_URL}/notify`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message: 'Nuovo ordine' })

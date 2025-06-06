@@ -47,9 +47,7 @@ export default function SocketProvider({ children }: { children: React.ReactNode
         const reservationAudio = new Audio('/audio/reservation.mp3')
         const orderAudio = new Audio('/audio/order.mp3')
 
-        const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws'
-        const host = window.location.hostname === 'localhost' ? 'localhost' : '49.12.66.4'
-        const socket = new WebSocket(`${protocol}://${host}:3002`)
+        const socket = new WebSocket(process.env.NEXT_PUBLIC_WS_URL as string)
 
         socket.onopen = () => console.log('WebSocket connesso')
         socket.onerror = (error) => console.error('WebSocket errore:', error)
