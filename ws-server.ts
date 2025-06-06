@@ -37,4 +37,4 @@ app.post('/notify', (req, res) => {
 // server
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-server.listen(3001, () => console.log('WebSocket server attivo sulla porta 3001'))
+server.listen(4001, () => console.log('WebSocket server attivo sulla porta 3001'))
