@@ -53,6 +53,25 @@ export async function getProfileData(): Promise<{ fullname: string, email: strin
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// get user data
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+export async function getProfilePrivileges() {
+    const auth = await verifyAuth()
+
+    // check id
+    const _id = auth.user?.id
+    if (!_id) return null
+
+    // check user
+    const user = await db.collection<User>("users").findOne({ _id })
+    if (!user) return null
+
+    return { superuser: user.superuser, privileges: user.privileges }
+}
+
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // update user data
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 

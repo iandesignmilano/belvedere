@@ -215,7 +215,7 @@ export default function FormUser({ children, type, id }: FormUserProps) {
                             <Switch
                                 checked={values.superuser}
                                 onCheckedChange={(checked) => {
-                                    const check = checked ? "view,update,create,delete" : ""
+                                    const check = checked ? "update,create,delete" : ""
                                     setFieldValue("superuser", checked)
                                     setFieldValue("privileges", check)
                                 }}
@@ -226,14 +226,6 @@ export default function FormUser({ children, type, id }: FormUserProps) {
 
                         <div className='lg:col-span-3 space-y-4'>
                             <Label>Privilegi</Label>
-                            <div className="flex items-center gap-2">
-                                <Checkbox
-                                    className='size-6 bg-input'
-                                    checked={values.privileges.includes('view')}
-                                    onCheckedChange={(checked: boolean) => handleCheck(checked, "view")}
-                                />
-                                <p className='text-base'>Visualizza</p>
-                            </div>
                             <div className="flex items-center gap-2">
                                 <Checkbox
                                     className='size-6 bg-input'

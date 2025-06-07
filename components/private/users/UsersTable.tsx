@@ -26,7 +26,6 @@ interface UsersTableProps {
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 const privilegesMap = [
-    { label: 'visualizza', key: 'view' },
     { label: 'modifica', key: 'update' },
     { label: 'crea', key: 'create' },
     { label: 'elimina', key: 'delete' }

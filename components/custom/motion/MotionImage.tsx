@@ -54,7 +54,7 @@ export default function MotionImage({ images, menu = false }: MotionImageProps) 
                         alt={el.alt}
                         width={800}
                         height={menu && i == 0 ? 533 : 1067}
-                        className={`rounded-2xl ${menu ? null : i == 0 ? "-mt-8" : "mt-8"}`}
+                        className={`h-full w-full object-cover rounded-2xl ${menu ? null : i == 0 ? "-mt-8" : "mt-8"}`}
                     />
                 </motion.div>
             ))}

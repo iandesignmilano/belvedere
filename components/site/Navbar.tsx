@@ -70,7 +70,7 @@ export function Navbar({ className, open, setOpen }: NavbarProps) {
     const pathname = usePathname()
 
     return (
-        <section className={`${className} custom-container px-8 grid grid-cols-2 lg:grid-cols-3 items-center gap-4 py-2 rounded-full custom-transition`}>
+        <section className={`${className} custom-container px-8 flex justify-between items-center gap-4 py-2 rounded-full custom-transition`}>
             <div>
                 <Link href="/" className="flex items-center cursor-pointer" onClick={() => setOpen(false)}>
                     <Image src="/logo.png" alt="" width={200} height={81} className="w-[80] lg:w-[100px]" />

@@ -46,7 +46,8 @@ const settings = [
     {
         title: "Utenti",
         url: "/private/utenti",
-        icon: <Users />
+        icon: <Users />,
+        superuser: true
     },
     {
         title: "Profilo",
@@ -59,7 +60,10 @@ const settings = [
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export default function Bar() {
+export default function Bar({ privileges }: { privileges: string }) {
+
+    const settingsMenu = privileges == "all" ? settings : settings.filter((el) => !el.superuser)
+
     return (
         <Sidebar variant="floating" collapsible="icon" className="pr-0">
 
@@ -99,7 +103,7 @@ export default function Bar() {
                     <SidebarGroupLabel>Impostazioni</SidebarGroupLabel>
                     <SidebarGroupContent>
                         <SidebarMenu>
-                            {settings.map((item, index) => (
+                            {settingsMenu.map((item, index) => (
                                 <SidebarMenuItem key={index}>
                                     <SidebarButton name={item.title} icon={item.icon} path={item.url} />
                                 </SidebarMenuItem>

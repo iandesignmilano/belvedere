@@ -21,7 +21,7 @@ import FormIngredients from "@/components/custom/form/FormIngredients"
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export default function IngredientsList({ ingredients }: { ingredients: IngredientsProps[] }) {
+export default function IngredientsList({ ingredients, privileges }: { ingredients: IngredientsProps[], privileges: string }) {
 
     // --------------------------------------------------------------
     // data
@@ -50,11 +50,13 @@ export default function IngredientsList({ ingredients }: { ingredients: Ingredie
                 <div>
                     <SearchIngredients searchData={searchData} />
                 </div>
-                <div className="text-right">
-                    <FormIngredients type="create">
-                        <Button className="custom-button max-lg:w-full">Aggiungi ingrediente</Button>
-                    </FormIngredients>
-                </div>
+                {(privileges == "all" || privileges.includes("create")) && (
+                    <div className="text-right">
+                        <FormIngredients type="create">
+                            <Button className="custom-button max-lg:w-full">Aggiungi ingrediente</Button>
+                        </FormIngredients>
+                    </div>
+                )}
             </div>
             <Separator />
             {ingredientsList.length == 0 && (
@@ -65,14 +67,18 @@ export default function IngredientsList({ ingredients }: { ingredients: Ingredie
                     <div className="space-y-2">
                         <h2 className="text-xl text-primary">{el.name}</h2>
                         <h4 className="text-foreground">{el.price}€</h4>
-                        <div className="flex items-center gap-4 justify-end">
-                            <FormIngredients type="update" id={el._id}>
-                                <Button size="icon" className="rounded-full">
-                                    <Pen />
-                                </Button>
-                            </FormIngredients>
-                            <DeleteIngredient id={el._id} />
-                        </div>
+                        {(privileges == "all" || privileges.includes('update') || privileges.includes('delete')) && (
+                            <div className="flex items-center gap-4 justify-end">
+                                {(privileges == "all" || privileges.includes('update')) && (
+                                    <FormIngredients type="update" id={el._id}>
+                                        <Button size="icon" className="rounded-full">
+                                            <Pen />
+                                        </Button>
+                                    </FormIngredients>
+                                )}
+                                {(privileges == "all" || privileges.includes('delete')) && <DeleteIngredient id={el._id} />}
+                            </div>
+                        )}
                     </div>
                     <Separator />
                 </React.Fragment>

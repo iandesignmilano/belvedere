@@ -20,10 +20,20 @@ import SearchReservations from "./SearchReservations"
 import FormReservationPrivate from "@/components/custom/form/reservation/FormReservationPrivate"
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// interface
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+interface ReservationsListProps {
+    reservations: ReservationsProps[]
+    user?: string
+    privileges: string
+}
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export default function ReservationsList({ reservations, user }: { reservations: ReservationsProps[], user?: string }) {
+export default function ReservationsList({ reservations, user, privileges }: ReservationsListProps) {
 
     const { updateData, setUpdateData } = useSocket()
 
@@ -88,11 +98,13 @@ export default function ReservationsList({ reservations, user }: { reservations:
                 <div>
                     <SearchReservations searchData={searchData} />
                 </div>
-                <div className="text-right lg:col-span-2 xl:col-span-1">
-                    <FormReservationPrivate type="create" user={user}>
-                        <Button className="custom-button max-xl:w-full">Aggiungi prenotazione</Button>
-                    </FormReservationPrivate>
-                </div>
+                {(privileges == "all" || privileges.includes("create")) && (
+                    <div className="text-right lg:col-span-2 xl:col-span-1">
+                        <FormReservationPrivate type="create" user={user}>
+                            <Button className="custom-button max-xl:w-full">Aggiungi prenotazione</Button>
+                        </FormReservationPrivate>
+                    </div>
+                )}
             </div>
             <Separator />
             {list.length == 0 && (
@@ -104,14 +116,18 @@ export default function ReservationsList({ reservations, user }: { reservations:
                         <h2 className="text-xl text-primary">({el.code}) {el.fullname} x {el.people}</h2>
                         <h4 className="text-foreground">{el.date} | {el.time}</h4>
                         <h4 className="text-muted-foreground">{el.phone}</h4>
-                        <div className="flex items-center gap-4 justify-end">
-                            <FormReservationPrivate type="update" id={el._id}>
-                                <Button size="icon" className="rounded-full">
-                                    <Pen />
-                                </Button>
-                            </FormReservationPrivate>
-                            <DeleteReservation id={el._id} />
-                        </div>
+                        {(privileges == "all" || privileges.includes('update') || privileges.includes('delete')) && (
+                            <div className="flex items-center gap-4 justify-end">
+                                {(privileges == "all" || privileges.includes('update')) && (
+                                    <FormReservationPrivate type="update" id={el._id}>
+                                        <Button size="icon" className="rounded-full">
+                                            <Pen />
+                                        </Button>
+                                    </FormReservationPrivate>
+                                )}
+                                {(privileges == "all" || privileges.includes('delete')) && <DeleteReservation id={el._id} />}
+                            </div>
+                        )}
                     </div>
                     <Separator />
                 </React.Fragment>

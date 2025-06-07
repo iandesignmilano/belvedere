@@ -62,7 +62,7 @@ export default function Footer() {
         <section className="custom-section bg-food">
             <div className="custom-container">
                 <MotionText title={contacts.title} />
-                <div className="flex flex-col-reverse lg:grid lg:grid-cols-2 gap-8 mt-8">
+                <div className="flex flex-col-reverse xl:grid xl:grid-cols-2 gap-8 mt-8">
                     <div className="flex flex-col gap-8">
                         <MotionIconBox box={data} footer={true} />
                     </div>

@@ -68,7 +68,7 @@ export function About({ page }: { page?: boolean }) {
 
     return (
         <section className="custom-section bg-food">
-            <div className="custom-container flex flex-col-reverse lg:grid lg:grid-cols-2 items-center gap-16">
+            <div className="custom-container flex flex-col-reverse xl:grid xl:grid-cols-2 items-center gap-16">
                 <div className="flex flex-col gap-8">
                     <MotionText
                         title={!page ? dataAbout.title : null}
@@ -94,7 +94,7 @@ export function Quality() {
             <div className="custom-container flex flex-col gap-16">
                 <div className="flex flex-col gap-8 text-center lg:text-start">
                     <MotionText title={dataQuality.title} text={dataQuality.text} multitext={true} />
-                    <div className="grid lg:grid-cols-3 gap-8 mt-8">
+                    <div className="grid grid-cols-2 xl:grid-cols-3 gap-8 mt-8">
                         <MotionBox box={dataQuality.box} />
                     </div>
                 </div>

@@ -193,7 +193,7 @@ my code
 
     .custom-opacity {
         @apply 
-        before:bg-white/70 before:lg:bg-white/10 
+        before:bg-white/70 before:xl:bg-white/10 
         before:w-full before:h-full 
         before:absolute before:top-0 before:left-0;
     }
