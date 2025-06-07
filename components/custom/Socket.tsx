@@ -61,16 +61,16 @@ export default function SocketProvider({ children }: { children: React.ReactNode
         socket.onmessage = async (event) => {
 
             if (event.data.includes("prenotazione")) {
-                reservationAudio.play().catch((err) => { console.log(err) })
+                reservationAudio.play().catch(() => { })
                 setUpdateData("reservation")
             }
 
             if (event.data.includes("ordine")) {
-                orderAudio.play().catch((err) => { console.log(err) })
+                orderAudio.play().catch(() => { })
                 setUpdateData("order")
             }
 
-            ToastSuccess(event.data || "")
+            ToastSuccess(event.data)
         }
         return () => socket.close()
     }, [])

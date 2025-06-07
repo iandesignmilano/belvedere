@@ -13,7 +13,7 @@ import express from 'express'
 
 const app = express()
 const server = http.createServer(app)
-const wss = new WebSocketServer({ server, path: '/ws' })
+const wss = new WebSocketServer({ server })
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // connect
@@ -31,7 +31,7 @@ wss.on('connection', (ws) => {
 
 app.use(express.json())
 
-app.post('/ws/notify', (req, res) => {
+app.post('/notify', (req, res) => {
     const { message } = req.body
     wss.clients.forEach(client => { if (client.readyState === 1) client.send(message) })
     res.status(200).send('Messaggio inviato')
