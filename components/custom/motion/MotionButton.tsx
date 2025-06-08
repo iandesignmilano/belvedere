@@ -67,7 +67,7 @@ export default function MotionButton({ buttons, className, show = false }: Motio
                             className={`
                                 custom-button ${el.variant == "outline" && "custom-button-outline"} 
                                 !text-lg max-lg:w-full 
-                                ${className}
+                                ${el.variant !== "outline" && className}
                             `}
                             variant={el.variant as buttonVariant ?? "default"}
                         >

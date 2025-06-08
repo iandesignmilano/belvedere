@@ -155,7 +155,7 @@ export default function MotionNav() {
                                     initial={{ opacity: 0, y: 100 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ duration: 0.5, delay: (i + 1) * 0.5, ease: "easeInOut" }}
-                                    className={`text-primary font-title text-5xl ${pathname == el.link && "pb-2 border-b-2"}`}
+                                    className={`text-primary font-title text-5xl ${pathname == el.link && "pb-2 border-b-2 border-primary"}`}
                                 >
                                     <Link href={el.link} onClick={() => setOpen(false)}>
                                         {el.title}

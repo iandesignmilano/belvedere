@@ -230,6 +230,10 @@ my code
         @apply bg-primary border-primary text-white;
     }
 
+    [data-vaul-overlay]{
+        @apply z-[101];
+    }
+
     /* ---------------------
     bg 
     --------------------- */

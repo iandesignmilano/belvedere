@@ -94,7 +94,7 @@ export function Quality() {
             <div className="custom-container flex flex-col gap-16">
                 <div className="flex flex-col gap-8 text-center lg:text-start">
                     <MotionText title={dataQuality.title} text={dataQuality.text} multitext={true} />
-                    <div className="grid grid-cols-2 xl:grid-cols-3 gap-8 mt-8">
+                    <div className="grid lg:grid-cols-2 xl:grid-cols-3 gap-8 mt-8">
                         <MotionBox box={dataQuality.box} />
                     </div>
                 </div>
