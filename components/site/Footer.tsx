@@ -59,7 +59,7 @@ const data = [
 
 export default function Footer() {
     return (
-        <section className="custom-section bg-food">
+        <section className="py-20 max-lg:pb-28 lg:py-36 relative overflow-hidden bg-food">
             <div className="custom-container">
                 <MotionText title={contacts.title} />
                 <div className="flex flex-col-reverse xl:grid xl:grid-cols-2 gap-8 mt-8">

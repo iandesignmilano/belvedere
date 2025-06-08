@@ -63,7 +63,7 @@ export default function CookieBanner({ show }: { show: boolean }) {
     // ---------------------------------------------------
 
     return (
-        <section className='fixed bottom-4 end-4 z-50'>
+        <section className='fixed bottom-20 lg:bottom-4 end-4 z-50'>
             <Drawer open={banner} onClose={() => setBanner(false)}>
                 <DrawerTrigger asChild>
                     <motion.div style={{ opacity, x }} transition={{ duration: 0.5, ease: "easeInOut" }}>
@@ -88,11 +88,11 @@ export default function CookieBanner({ show }: { show: boolean }) {
                             Usa il pulsante “Accetta” per acconsentire. Usa il pulsante “Rifiuta” o chiudi questa informativa per continuare senza accettare.
                         </DrawerDescription>
                     </DrawerHeader>
-                    <DrawerFooter className='grid grid-cols-2 gap-4'>
+                    <DrawerFooter className='flex lg:items-center justify-between md:!flex-row flex-col-reverse gap-4'>
                         <div>
                             <Drawer>
                                 <DrawerTrigger asChild>
-                                    <Button className="custom-button custom-button-outline" variant="outline">Personalizza</Button>
+                                    <Button className="custom-button custom-button-outline max-md:w-full" variant="outline">Personalizza</Button>
                                 </DrawerTrigger>
                                 <DrawerContent
                                     className="z-[105]"
@@ -125,22 +125,22 @@ export default function CookieBanner({ show }: { show: boolean }) {
                                             </section>
                                         </DrawerDescription>
                                     </DrawerHeader>
-                                    <DrawerFooter className='grid grid-cols-2 gap-4'>
+                                    <DrawerFooter className='flex lg:items-center justify-between md:!flex-row flex-col-reverse gap-4'>
                                         <div>
                                             <DrawerClose asChild>
-                                                <Button className="custom-button custom-button-outline" variant="outline">Annulla</Button>
+                                                <Button className="custom-button custom-button-outline max-lg:w-full" variant="outline">Annulla</Button>
                                             </DrawerClose>
                                         </div>
                                         <div className='text-end'>
                                             <DrawerClose asChild>
-                                                <Button className="custom-button" onClick={handleSaveCustom}>Salva e continua</Button>
+                                                <Button className="custom-button max-lg:w-full" onClick={handleSaveCustom}>Salva e continua</Button>
                                             </DrawerClose>
                                         </div>
                                     </DrawerFooter>
                                 </DrawerContent>
                             </Drawer>
                         </div>
-                        <section className='flex gap-4 justify-end'>
+                        <section className='flex gap-4 justify-end max-md:flex-col-reverse'>
                             <DrawerClose asChild>
                                 <Button
                                     className="custom-button custom-button-outline"
