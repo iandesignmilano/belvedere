@@ -127,7 +127,11 @@ export default function FormTables({ children, type, id }: FormTablesProps) {
             <div onClick={() => setOpen(true)}>{children}</div>
 
             <Drawer open={open} onOpenChange={() => setOpen(false)}>
-                <DrawerContent onInteractOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()}>
+                <DrawerContent
+                    className="z-[105]"
+                    onInteractOutside={(e) => e.preventDefault()}
+                    onEscapeKeyDown={(e) => e.preventDefault()}
+                >
                     <DrawerHeader>
                         <DrawerTitle className="text-2xl text-primary">{text[type].title}</DrawerTitle>
                         <DrawerDescription className="text-base">{text[type].description}</DrawerDescription>

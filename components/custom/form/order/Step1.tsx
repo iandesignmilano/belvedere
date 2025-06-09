@@ -230,7 +230,11 @@ export default function Step1({ values, errors, touched, setFieldValue, setField
             </div>
 
             <Drawer open={open} onOpenChange={() => setOpen(false)}>
-                <DrawerContent onInteractOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()}>
+                <DrawerContent
+                    className="z-[105]"
+                    onInteractOutside={(e) => e.preventDefault()}
+                    onEscapeKeyDown={(e) => e.preventDefault()}
+                >
                     <DrawerHeader>
                         <DrawerTitle className="text-4xl text-primary font-title">{drawer_title}</DrawerTitle>
                         <DrawerDescription className="text-base">{drawer_description}</DrawerDescription>
