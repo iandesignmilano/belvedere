@@ -63,7 +63,7 @@ export default function CookieBanner({ show }: { show: boolean }) {
     // ---------------------------------------------------
 
     return (
-        <section className='fixed bottom-20 lg:bottom-4 end-4 z-50'>
+        <section className='fixed bottom-20 lg:bottom-4 end-4 z-[47]'>
             <Drawer open={banner} onClose={() => setBanner(false)}>
                 <DrawerTrigger asChild>
                     <motion.div style={{ opacity, x }} transition={{ duration: 0.5, ease: "easeInOut" }}>
@@ -73,7 +73,6 @@ export default function CookieBanner({ show }: { show: boolean }) {
                     </motion.div>
                 </DrawerTrigger>
                 <DrawerContent
-                    className="z-[105]"
                     onInteractOutside={(e) => e.preventDefault()}
                     onEscapeKeyDown={(e) => e.preventDefault()}
                 >
@@ -95,7 +94,6 @@ export default function CookieBanner({ show }: { show: boolean }) {
                                     <Button className="custom-button custom-button-outline max-md:w-full" variant="outline">Personalizza</Button>
                                 </DrawerTrigger>
                                 <DrawerContent
-                                    className="z-[105]"
                                     onInteractOutside={(e) => e.preventDefault()}
                                     onEscapeKeyDown={(e) => e.preventDefault()}
                                 >

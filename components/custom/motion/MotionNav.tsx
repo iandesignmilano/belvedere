@@ -93,7 +93,7 @@ export default function MotionNav() {
             <motion.nav
                 animate={{ y: visible ? 0 : -100 }}
                 transition={{ duration: 0.4, ease: "easeInOut" }}
-                className='w-full z-[100] fixed top-0 py-2 max-lg:px-4'
+                className='w-full z-[49] fixed top-0 py-2 max-lg:px-4'
             >
                 <Navbar
                     className={cls}
@@ -108,7 +108,7 @@ export default function MotionNav() {
                     initial={{ y: 100 }}
                     animate={{ y: mobileNav ? 0 : 100 }}
                     transition={{ duration: 0.4, ease: "easeInOut" }}
-                    className="lg:hidden fixed bottom-0 w-full py-2 px-4 z-[50]"
+                    className="lg:hidden fixed bottom-0 w-full py-2 px-4 z-[48]"
                 >
                     <div className="bg-white rounded-full py-2 px-4 flex items-center justify-around gap-2">
                         {nav
@@ -145,7 +145,7 @@ export default function MotionNav() {
                         animate={{ opacity: 1 }}
                         transition={{ duration: 0.5, ease: "easeInOut" }}
                         exit={{ opacity: 0 }}
-                        className="w-full bg-white h-svh fixed top-0 left-0 z-[90] overflow-hidden flex flex-col items-center justify-center gap-16"
+                        className="w-full bg-white h-svh fixed top-0 left-0 z-[48] overflow-hidden flex flex-col items-center justify-center gap-16"
                     >
                         {nav
                             .filter((el) => !el.button)

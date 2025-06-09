@@ -231,7 +231,6 @@ export default function Step1({ values, errors, touched, setFieldValue, setField
 
             <Drawer open={open} onOpenChange={() => setOpen(false)}>
                 <DrawerContent
-                    className="z-[105]"
                     onInteractOutside={(e) => e.preventDefault()}
                     onEscapeKeyDown={(e) => e.preventDefault()}
                 >

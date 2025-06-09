@@ -125,7 +125,6 @@ export default function FormIngredients({ children, type, id }: FormIngredientsP
 
             <Drawer open={open} onOpenChange={() => setOpen(false)}>
                 <DrawerContent
-                    className="z-[105]"
                     onInteractOutside={(e) => e.preventDefault()}
                     onEscapeKeyDown={(e) => e.preventDefault()}
                 >

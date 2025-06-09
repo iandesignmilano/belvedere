@@ -160,7 +160,6 @@ export default function FormUser({ children, type, id }: FormUserProps) {
 
             <Drawer open={open} onOpenChange={() => setOpen(false)}>
                 <DrawerContent
-                    className="z-[105]"
                     onInteractOutside={(e) => e.preventDefault()}
                     onEscapeKeyDown={(e) => e.preventDefault()}
                 >

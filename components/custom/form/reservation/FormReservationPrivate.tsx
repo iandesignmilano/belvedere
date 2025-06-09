@@ -158,7 +158,6 @@ export default function FormReservationPrivate({ children, type, id, user }: For
 
             <Drawer open={open} onOpenChange={() => setOpen(false)}>
                 <DrawerContent
-                    className="z-[105]"
                     onInteractOutside={(e) => e.preventDefault()}
                     onEscapeKeyDown={(e) => e.preventDefault()}
                 >
