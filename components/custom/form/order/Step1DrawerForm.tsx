@@ -81,13 +81,14 @@ export default function Step1DrawerForm({ selected, values, errors, touched, set
     const touched_element = typeof touched_data === "object" && touched_data !== null ? touched_data : undefined
 
     // total
-    const getTotal = useCallback((price: string, qta: number) => {
+    const getTotal = useCallback((price: string, qta: number, type: string) => {
         const basePrice = parseFloat(price)
 
         const extras = data.custom || []
+
         const extrasSum = extras.reduce((sum, item) => {
-            const price = parseFloat(item.price) || 0
-            return sum + price
+            const price = type == "base" ? item.price : item.xl
+            return sum + parseFloat(price)
         }, 0)
 
         const total = ((basePrice + extrasSum) * qta).toFixed(2).toString()
@@ -109,7 +110,7 @@ export default function Step1DrawerForm({ selected, values, errors, touched, set
                             setFieldValue(`order[${index}].type`, value)
                             const price = value == "base" ? selected.price as string : selected.maxi as string
                             setFieldValue(`order[${index}].price`, price)
-                            getTotal(price, data.quantity)
+                            getTotal(price, data.quantity, value)
                         }}
                         onOpenChange={(open) => {
                             if (!open) setFieldTouched(`order[${index}].type`, true)
@@ -134,11 +135,12 @@ export default function Step1DrawerForm({ selected, values, errors, touched, set
                             <Button
                                 type="button"
                                 className="h-full !px-4 !text-lg"
+                                disabled={!data.type}
                                 onClick={() => {
                                     const qta = data.quantity + 1
                                     setFieldValue(`order[${index}].quantity`, qta)
                                     setFieldTouched(`order[${index}].quantity`, true, true)
-                                    getTotal(data.price, qta)
+                                    getTotal(data.price, qta, data.type)
                                 }}
                             >
                                 <Plus className="size-4" />
@@ -146,12 +148,12 @@ export default function Step1DrawerForm({ selected, values, errors, touched, set
                             <Button
                                 type="button"
                                 className="h-full !px-4 !text-lg"
-                                disabled={data.quantity == 1}
+                                disabled={data.quantity == 1 || !data.type}
                                 onClick={() => {
                                     const qta = data.quantity == 1 ? 1 : data.quantity - 1
                                     setFieldValue(`order[${index}].quantity`, qta)
                                     setFieldTouched(`order[${index}].quantity`, true, true)
-                                    getTotal(data.price, qta)
+                                    getTotal(data.price, qta, data.type)
                                 }}
                             >
                                 <Minus className="size-4" />
@@ -207,16 +209,16 @@ export default function Step1DrawerForm({ selected, values, errors, touched, set
                                                 const isChecked = custom.some((item) => item.name === el.name)
 
                                                 let updated = []
-                                                if (isChecked) {
-                                                    updated = custom.filter((item) => item.name !== el.name)
-                                                } else {
-                                                    updated = [...custom, { name: el.name, price: el.price }]
-                                                }
+                                                if (isChecked) updated = custom.filter((item) => item.name !== el.name)
+                                                else updated = [...custom, { name: el.name, price: el.price, xl: el.xl }]
 
                                                 setFieldValue(`order[${index}].custom`, updated)
 
                                                 const basePrice = parseFloat(data.price)
-                                                const extrasSum = updated.reduce((sum, item) => sum + parseFloat(item.price || "0"), 0)
+                                                const extrasSum = updated.reduce((sum, item) => {
+                                                    const price = data.type == "base" ? item.price : item.xl
+                                                    return sum + parseFloat(price || "0")
+                                                }, 0)
                                                 const total = ((basePrice + extrasSum) * data.quantity).toFixed(2).toString()
                                                 setFieldValue(`order[${index}].total`, total)
                                             }}
@@ -227,7 +229,7 @@ export default function Step1DrawerForm({ selected, values, errors, touched, set
                                             />
                                             <div className="flex items-center gap-4 justify-between w-full">
                                                 <span>{el.name}</span>
-                                                <span className="text-primary">+ {el.price}€</span>
+                                                <span className="text-primary">+ {data.type == "base" ? el.price : el.xl}€</span>
                                             </div>
                                         </div>
                                         {allIngredients.length !== (i + 1) && <Separator className="bg-slate-300" />}

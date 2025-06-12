@@ -43,8 +43,12 @@ export type initialValue = {
         type: string
         price: string
         quantity: number
-        custom: { name: string; price: string; }[]
-        total: string;
+        custom: {
+            name: string
+            price: string
+            xl: string
+        }[]
+        total: string
     }[];
 
     pay: string
@@ -204,17 +208,17 @@ export default function Step5({ values, progress, setProgress, setFieldValue, su
                                 <div className="space-y-2">
                                     <h4>{el.name} x {el.quantity}</h4>
                                     <p className="text-sm flex items-center justify-between gap-2">
-                                        <span>Prezzo:</span>
+                                        <span>Prezzo</span>
                                         <span>{parzial}€</span>
                                     </p>
                                     {el.custom && el.custom.map((add, i) => (
                                         <p key={i} className="text-sm flex items-center justify-between gap-2">
                                             <span>{add.name}</span>
-                                            <span>{(parseFloat(add.price) * el.quantity).toFixed(2).toString()}€</span>
+                                            <span>{(parseFloat(el.type == "base" ? add.price : add.xl) * el.quantity).toFixed(2).toString()}€</span>
                                         </p>
                                     ))}
                                     <p className="text-sm flex items-center justify-between gap-2">
-                                        <span>Totale:</span>
+                                        <span>Totale</span>
                                         <span>{el.total}€</span>
                                     </p>
                                 </div>

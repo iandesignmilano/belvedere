@@ -1,3 +1,7 @@
+"use client"
+
+import { useState, useEffect } from "react"
+
 // formik
 import { FormikErrors, FormikTouched } from "formik"
 
@@ -10,6 +14,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 // icons
 import { Loader2, Plus, Minus } from "lucide-react"
+
+// actions
+import { getTableFree } from "@/actions/reservations"
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // interface
@@ -40,6 +47,29 @@ interface Step2Props {
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 export default function Step2({ values, errors, touched, isValid, isSubmitting, setFieldValue, progress, setProgress, setFieldTouched }: Step2Props) {
+
+    // --------------------------------------------------------------
+    // data slot
+    // --------------------------------------------------------------
+
+    const [slots, setSlots] = useState<string[]>([])
+
+    useEffect(() => {
+
+        async function getSlots() {
+            const res = await getTableFree(values.date as string, values.people)
+            setSlots(res)
+            setFieldValue('time', "")
+        }
+
+        if (values.date && values.people) getSlots()
+    }, [values.date, values.people, setFieldValue])
+
+    // --------------------------------------------------------------
+    // code
+    // --------------------------------------------------------------
+
+
     return (
         <>
             <div className="space-y-2 lg:col-span-2">
@@ -108,18 +138,16 @@ export default function Step2({ values, errors, touched, isValid, isSubmitting, 
                         <SelectValue placeholder="Orari disponibili" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="19:30">19:30</SelectItem>
-                        <SelectItem value="20:00">20:00</SelectItem>
-                        <SelectItem value="20:30">20:30</SelectItem>
+                        {slots.map((el, i) => <SelectItem key={i} value={el}>{el}</SelectItem>)}
                     </SelectContent>
                 </Select>
                 {!values.date && <p className="text-sm pl-3 text-muted-foreground">Seleziona una data per vedere gli orari</p>}
                 {errors.time && touched.time && <p className="text-red-500 text-sm pl-3">{errors.time}</p>}
             </div>
 
-            <div className="lg:col-span-2 flex gap-4 justify-between">
+            <div className="lg:col-span-2 flex gap-4 justify-between max-lg:flex-col-reverse">
                 <Button
-                    className="custom-button custom-button-outline !text-lg"
+                    className="custom-button custom-button-outline !text-lg max-lg:w-full"
                     variant="outline"
                     type="button"
                     disabled={isSubmitting}
@@ -129,7 +157,7 @@ export default function Step2({ values, errors, touched, isValid, isSubmitting, 
                 </Button>
                 <Button
                     type="submit"
-                    className="custom-button !text-lg max-lg:grow bg-green-600 hover:bg-green-600/90"
+                    className="custom-button !text-lg max-lg:w-full bg-green-600 hover:bg-green-600/90"
                     disabled={!isValid || isSubmitting || !values.people || !values.date || !values.time}
                 >
                     {isSubmitting && <Loader2 className="size-6 animate-spin" />} Conferma

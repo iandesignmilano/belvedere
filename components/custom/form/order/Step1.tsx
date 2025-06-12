@@ -18,7 +18,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter, DrawerClose } from "@/components/ui/drawer"
 
 // icons
-import { Plus } from "lucide-react"
+import { Plus, Pizza } from "lucide-react"
 
 // data
 import { MenuList } from "@/assets/data/menu"
@@ -29,14 +29,18 @@ import { MenuList } from "@/assets/data/menu"
 
 export type initialValue = {
     order: {
-        id: number;
-        name: string;
-        ingredients: string;
-        type: string;
-        price: string;
-        quantity: number;
-        custom: { name: string; price: string; }[];
-        total: string;
+        id: number
+        name: string
+        ingredients: string
+        type: string
+        price: string
+        quantity: number
+        custom: {
+            name: string
+            price: string
+            xl: string
+        }[]
+        total: string
     }[];
 }
 
@@ -58,6 +62,8 @@ interface Step1Props {
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 export default function Step1({ values, errors, touched, setFieldValue, setFieldTouched, progress, setProgress }: Step1Props) {
+
+    const [updated, setUpdated] = useState(false)
 
     // --------------------------------------------------------------
     // form data
@@ -113,7 +119,13 @@ export default function Step1({ values, errors, touched, setFieldValue, setField
     const updateSelected = (data: singleValue) => {
         const menu = MenuList.find((el) => el.name == data.name)
         setSelected({ ...menu, index: data.id })
+        setUpdated(true)
         setOpen(true)
+    }
+
+    const resetUpdate = () => {
+        setUpdated(false)
+        setOpen(false)
     }
 
     // --------------------------------------------------------------
@@ -155,27 +167,47 @@ export default function Step1({ values, errors, touched, setFieldValue, setField
                 <Accordion type="single" collapsible className="bg-input rounded-xl px-4 lg:col-span-2">
                     {values.order.map((el, i) => (
                         <AccordionItem key={i} value={`item-${i}`} className="border-slate-300">
-                            <AccordionTrigger className="text-primary text-lg items-center">{el.name} X {el.quantity}</AccordionTrigger>
+                            <AccordionTrigger className="text-primary text-lg items-center">{el.quantity} X {el.name} - {el.type.toUpperCase()}</AccordionTrigger>
                             <AccordionContent className="space-y-4">
-                                <p className="text-muted-foreground text-sm">{el.ingredients}</p>
+                                <Separator className="bg-slate-300" />
+                                <p className="text-sm flex items-center justify-between gap-2">
+                                    <div className="flex items-center gap-2">
+                                        <Pizza className="size-4" />
+                                        <span>Prezzo</span>
+                                    </div>
+                                    <span>{(parseFloat(el.price) * el.quantity).toFixed(2).toString()}€</span>
+                                </p>
+
                                 {el.custom.length > 0 && (
                                     <>
                                         <Separator className="bg-slate-300" />
-                                        {el.custom.map((add, i) => (
-                                            <div key={i} className="text-sm flex items-center gap-2">
-                                                <Plus className="size-4 text-green-600" />
-                                                <span>{add.name}</span>
-                                                <span>{add.price}€</span>
-                                            </div>
-                                        ))}
+                                        {el.custom.map((add, i) => {
+
+                                            const price = el.type == "base" ? add.price : add.xl
+                                            const total = (parseFloat(price) * el.quantity).toFixed(2).toString()
+
+                                            return (
+                                                <div key={i} className="text-sm flex items-center justify-between gap-2">
+                                                    <div className="flex items-center gap-2">
+                                                        <Plus className="size-4 text-green-600" />
+                                                        <span>{add.name}</span>
+                                                    </div>
+                                                    <span>{total}€</span>
+                                                </div>
+                                            )
+                                        })}
                                     </>
                                 )}
+
                                 <Separator className="bg-slate-300" />
-                                <p className="text-base">Porzione: {el.type}</p>
-                                <p className="text-base">Prezzo Porzione: {el.price}€</p>
-                                <p className="text-base">Quantità: {el.quantity}</p>
-                                <Separator className="bg-slate-300" />
-                                <p className="text-base font-bold">Totale: {el.total}€</p>
+                                <p className="text-base font-bold flex items-center justify-between gap-2">
+                                    <div className="flex items-center gap-2">
+                                        <Pizza className="size-4" />
+                                        <span>Totale</span>
+                                    </div>
+                                    <span>{el.total}€</span>
+                                </p>
+
                                 <Separator className="bg-slate-300" />
                                 <div className="flex items-center justify-between lg:justify-end gap-4">
                                     <Button
@@ -215,13 +247,13 @@ export default function Step1({ values, errors, touched, setFieldValue, setField
                 </div>
             </div>
 
-            <div className="lg:col-span-2 flex gap-4 justify-between">
+            <div className="lg:col-span-2 flex max-lg:flex-col-reverse gap-4 justify-between">
                 <Link href="/">
-                    <Button className="custom-button !text-lg" variant="destructive" type="button">Annulla</Button>
+                    <Button className="custom-button !text-lg max-lg:w-full" variant="destructive" type="button">Annulla</Button>
                 </Link>
                 <Button
                     type="button"
-                    className="custom-button !text-lg max-lg:grow"
+                    className="custom-button !text-lg max-lg:w-full"
                     disabled={values.order.length == 0}
                     onClick={() => setProgress(progress + 1)}
                 >
@@ -257,11 +289,11 @@ export default function Step1({ values, errors, touched, setFieldValue, setField
                             <>
                                 <div>Totale: {getPrice(selected.index as number)}</div>
                                 <Separator className="my-2" />
-                                <section className="flex items-center gap-4 justify-between">
+                                <section className="flex lg:items-center max-lg:flex-col-reverse gap-4 justify-between">
                                     <Button
                                         className="custom-button custom-button-outline !text-lg"
                                         variant="outline"
-                                        onClick={() => deleteSelected(selected.index as number)}
+                                        onClick={() => updated ? resetUpdate() : deleteSelected(selected.index as number)}
                                     >
                                         Annulla
                                     </Button>

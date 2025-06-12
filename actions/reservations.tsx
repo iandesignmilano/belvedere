@@ -13,7 +13,7 @@ import { ObjectId } from 'mongodb'
 import nodemailer from "nodemailer"
 
 // date
-import { format } from "date-fns"
+import { format, isWeekend, parse } from "date-fns"
 
 // lib
 import { verifyAuth } from '@/lib/session'
@@ -48,6 +48,7 @@ export type ReservationsProps = {
     people: number
     date: string
     time: string
+    type: string
 }
 
 export type AddProps = {
@@ -87,10 +88,53 @@ export async function getReservations() {
         people: el.people,
         date: el.date,
         time: el.time,
-        code: el.code
+        code: el.code,
+        type: el.type
     }))
 
     return result
+}
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// get table free
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+export async function getTableFree(date: string, people: number) {
+
+    // prenotazioni
+    const reservations = await db.collection("reservations").find({ date }).sort({ time: 1 }).toArray()
+
+    // tavoli
+    const tables = await db.collection("tables").find({ people }).toArray()
+    if (!tables.length) return []
+
+    // orari disponibili (week o settimana)
+    const parsedDate = parse(date, "dd-MM-yyyy", new Date())
+    const weekend = isWeekend(parsedDate)
+
+    let slots: string[] = []
+    if (weekend || parsedDate.getDay() === 5) slots = ["19:00", "19:15", "20:30", "20:45"]
+    else {
+        for (let h = 19; h <= 21; h++) {
+            for (let m = 0; m < 60; m += 15) {
+                if (h === 21 && m > 0) break
+                slots.push(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`)
+            }
+        }
+    }
+
+    // slot disponibili
+    const availableSlots: string[] = []
+    for (const slot of slots) {
+        const reservationsAtSlot = reservations.filter(r => r.time === slot && r.people === people)
+
+        const usedCount = reservationsAtSlot.length
+        const totalTables = tables.reduce((sum, t) => sum + Number(t.total), 0)
+
+        if (usedCount < totalTables) availableSlots.push(slot)
+    }
+
+    return availableSlots
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -113,7 +157,8 @@ export async function getReservationsByDate(date: string) {
         people: el.people,
         date: el.date,
         time: el.time,
-        code: el.code
+        code: el.code,
+        type: el.type
     }))
 
     return result
@@ -135,7 +180,8 @@ export async function getReservation(id: string) {
         people: reservation.people,
         date: reservation.date,
         time: reservation.time,
-        code: reservation.code
+        code: reservation.code,
+        type: reservation.type
     }
 }
 
@@ -143,7 +189,7 @@ export async function getReservation(id: string) {
 // add reservations
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export async function addReservationAction(formData: AddProps, user?: string) {
+export async function addReservationAction(formData: AddProps, user?: string, office?: boolean) {
 
     // today
     const today = format(new Date(), "dd-MM-yyyy")
@@ -156,7 +202,8 @@ export async function addReservationAction(formData: AddProps, user?: string) {
     // data
     const { fullname, email, phone, people, date, time } = formData
     const code = generateCode()
-    const reservation = { fullname, email, phone, people, date, time, code }
+    const type = office ? "office" : "online"
+    const reservation = { fullname, email, phone, people, date, time, code, type }
 
     // message
     const message = {
@@ -187,8 +234,10 @@ export async function addReservationAction(formData: AddProps, user?: string) {
             })
         }
 
-        await transporter.verify()
-        await transporter.sendMail(message)
+        if (!office) {
+            await transporter.verify()
+            await transporter.sendMail(message)
+        }
 
         revalidatePath("/private/prenotazioni")
         return { success: true }

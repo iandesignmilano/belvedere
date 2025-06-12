@@ -38,7 +38,7 @@ const anim = {
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// form 
+// schema 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 const stepSchemas = [
@@ -49,27 +49,18 @@ const stepSchemas = [
             .array()
             .of(
                 yup.object({
-                    id: yup
-                        .number()
-                        .integer()
-                        .positive(),
+                    id: yup.number().integer().positive(),
 
-                    name: yup
-                        .string()
-                        .optional(),
+                    name: yup.string().optional(),
 
-                    ingredients: yup
-                        .string()
-                        .optional(),
+                    ingredients: yup.string().optional(),
 
                     type: yup
                         .string()
                         .oneOf(["base", "xl"], "Porzione non valida")
                         .required("Porzione obbligatoria"),
 
-                    price: yup
-                        .string()
-                        .optional(),
+                    price: yup.string().optional(),
 
                     quantity: yup
                         .number()
@@ -85,21 +76,14 @@ const stepSchemas = [
                         .array()
                         .of(
                             yup.object({
-                                name: yup
-                                    .string()
-                                    .optional(),
-
-                                price: yup
-                                    .string()
-                                    .optional(),
+                                name: yup.string().optional(),
+                                price: yup.string().optional(),
+                                xl: yup.string().optional()
                             })
                         )
                         .nullable(),
 
-                    total: yup
-                        .string()
-                        .optional(),
-
+                    total: yup.string().optional(),
                 })
             )
             .min(1, "L'ordine deve contenere almeno un elemento")
@@ -151,13 +135,9 @@ const stepSchemas = [
 
     // step 3
     yup.object({
-        date: yup
-            .string()
-            .required("La data è obbligatoria"),
+        date: yup.string().required("La data è obbligatoria"),
 
-        time: yup
-            .string()
-            .required("L'orario è obbligatorio"),
+        time: yup.string().required("L'orario è obbligatorio"),
     }),
 
     // step 4
@@ -177,6 +157,10 @@ const stepSchemas = [
             .matches(/^\+?[0-9\s\-]{7,15}$/, "Inserisci un numero di telefono valido")
     })
 ]
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// values 
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 const formInitialValue = {
     // step 1

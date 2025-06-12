@@ -75,9 +75,9 @@ export default function Step4({ values, errors, touched, handleBlur, handleChang
                 {errors.phone && touched.phone && <p className="text-red-500 text-sm pl-3">{errors.phone}</p>}
             </div>
 
-            <div className="lg:col-span-2 flex gap-4 justify-between">
+            <div className="lg:col-span-2 flex gap-4 justify-between max-lg:flex-col-reverse">
                 <Button
-                    className="custom-button custom-button-outline !text-lg"
+                    className="custom-button custom-button-outline !text-lg max-lg:w-full"
                     variant="outline"
                     type="button"
                     onClick={() => setProgress(progress - 1)}
@@ -86,7 +86,7 @@ export default function Step4({ values, errors, touched, handleBlur, handleChang
                 </Button>
                 <Button
                     type="button"
-                    className="custom-button !text-lg max-lg:grow"
+                    className="custom-button !text-lg max-lg:w-full"
                     disabled={!values.fullname || !values.email || !values.phone || !!errors.fullname || !!errors.email || !!errors.phone}
                     onClick={() => setProgress(progress + 1)}
                 >

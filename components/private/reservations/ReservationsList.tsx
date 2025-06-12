@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react"
 
 // shad
 import { Button } from "../../ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Separator } from "../../ui/separator"
 
 // actions and hook
@@ -52,7 +53,7 @@ export default function ReservationsList({ reservations, user, privileges }: Res
         if (!value) setList(reservations)
         const filtered = reservations.filter((el) => {
             const search = value.toLowerCase()
-            return (el.code.toLowerCase().includes(search) || el.fullname.toLowerCase().includes(search))
+            return (el.code.toLowerCase().includes(search) || el.fullname.toLowerCase().includes(search) || el.phone.toLowerCase().includes(search))
         })
         setList(filtered)
     }
@@ -91,19 +92,36 @@ export default function ReservationsList({ reservations, user, privileges }: Res
 
     return (
         <>
-            <div className="grid lg:grid-cols-2 xl:grid-cols-3 gap-4">
+            <div className="grid lg:grid-cols-2 gap-4">
                 <div>
                     <DateReservations searchDataByDate={searchDataByDate} />
                 </div>
                 <div>
                     <SearchReservations searchData={searchData} />
                 </div>
+                <div className="lg:col-span-2">
+                    <Separator />
+                </div>
                 {(privileges == "all" || privileges.includes("create")) && (
-                    <div className="text-right lg:col-span-2 xl:col-span-1">
-                        <FormReservationPrivate type="create" user={user}>
-                            <Button className="custom-button max-xl:w-full">Aggiungi prenotazione</Button>
-                        </FormReservationPrivate>
-                    </div>
+                    <>
+                        <div className="text-right lg:col-span-2 xl:col-span-1">
+                            <FormReservationPrivate type="create" user={user}>
+                                <Button
+                                    className="custom-button custom-button-outline w-full"
+                                    variant="outline"
+                                >
+                                    Aggiungi prenotazione online
+                                </Button>
+                            </FormReservationPrivate>
+                        </div>
+                        <div className="text-right lg:col-span-2 xl:col-span-1">
+                            <FormReservationPrivate type="create" user={user} office>
+                                <Button className="custom-button w-full">
+                                    Aggiungi prenotazione in sede
+                                </Button>
+                            </FormReservationPrivate>
+                        </div>
+                    </>
                 )}
             </div>
             <Separator />
@@ -113,13 +131,14 @@ export default function ReservationsList({ reservations, user, privileges }: Res
             {list.map((el) => (
                 <React.Fragment key={el._id}>
                     <div className="space-y-2">
+                        {el.type == "online" ? <Badge>Online</Badge> : <Badge variant="outline">In sede</Badge>}
                         <h2 className="text-xl text-primary">({el.code}) {el.fullname} x {el.people}</h2>
                         <h4 className="text-foreground">{el.date} | {el.time}</h4>
                         <h4 className="text-muted-foreground">{el.phone}</h4>
                         {(privileges == "all" || privileges.includes('update') || privileges.includes('delete')) && (
                             <div className="flex items-center gap-4 justify-end">
                                 {(privileges == "all" || privileges.includes('update')) && (
-                                    <FormReservationPrivate type="update" id={el._id}>
+                                    <FormReservationPrivate type="update" id={el._id} office={el.type == "office" ? true : false}>
                                         <Button size="icon" className="rounded-full">
                                             <Pen />
                                         </Button>

@@ -66,7 +66,10 @@ export default function IngredientsList({ ingredients, privileges }: { ingredien
                 <React.Fragment key={el._id}>
                     <div className="space-y-2">
                         <h2 className="text-xl text-primary">{el.name}</h2>
-                        <h4 className="text-foreground">{el.price}€</h4>
+                        <h4 className="text-foreground flex items-center gap-4">
+                            <span>Base: {el.price}€ </span>
+                            <span className="text-primary font-bold">XL: {el.xl}€</span>
+                        </h4>
                         {(privileges == "all" || privileges.includes('update') || privileges.includes('delete')) && (
                             <div className="flex items-center gap-4 justify-end">
                                 {(privileges == "all" || privileges.includes('update')) && (

@@ -69,9 +69,9 @@ export default function Step3({ values, errors, touched, setFieldValue, progress
                 {errors.time && touched.time && <p className="text-red-500 text-sm pl-3">{errors.time}</p>}
             </div>
 
-            <div className="lg:col-span-2 flex gap-4 justify-between">
+            <div className="lg:col-span-2 flex gap-4 justify-between max-lg:flex-col-reverse">
                 <Button
-                    className="custom-button custom-button-outline !text-lg"
+                    className="custom-button custom-button-outline !text-lg max-lg:w-full"
                     variant="outline"
                     type="button"
                     onClick={() => setProgress(progress - 1)}
@@ -80,7 +80,7 @@ export default function Step3({ values, errors, touched, setFieldValue, progress
                 </Button>
                 <Button
                     type="button"
-                    className="custom-button !text-lg max-lg:grow"
+                    className="custom-button !text-lg max-lg:w-full"
                     disabled={!values.date || !values.time || !!errors.date || !!errors.time}
                     onClick={() => setProgress(progress + 1)}
                 >

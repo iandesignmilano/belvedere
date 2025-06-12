@@ -17,6 +17,7 @@ export type IngredientsProps = {
     _id: string
     name: string
     price: string
+    xl: string
 }
 
 type ActionProps = {
@@ -30,7 +31,7 @@ type ActionProps = {
 
 export async function getIngredients() {
     const ingredients = await db.collection("ingredients").find().toArray()
-    const result = ingredients.map((el) => ({ _id: el._id.toString(), name: el.name, price: el.price }))
+    const result = ingredients.map((el) => ({ _id: el._id.toString(), name: el.name, price: el.price, xl: el.xl }))
     return result
 }
 
@@ -53,7 +54,13 @@ export async function addIngredientAction(formData: ActionProps) {
 
     // data
     const { name, price } = formData
-    const ingredient = { name, price: parseFloat(price).toFixed(2).toString() }
+    const xl = parseFloat(price) + 1.5
+
+    const ingredient = {
+        name,
+        price: parseFloat(price).toFixed(2).toString(),
+        xl: xl.toFixed(2).toString()
+    }
 
     try {
         await db.collection("ingredients").insertOne(ingredient)
@@ -74,7 +81,13 @@ export async function updateIngredientAction(id: string, formData: ActionProps) 
 
     // data
     const { name, price } = formData
-    const ingredient = { name, price: parseFloat(price).toFixed(2).toString() }
+    const xl = parseFloat(price) + 1.5
+
+    const ingredient = {
+        name,
+        price: parseFloat(price).toFixed(2).toString(),
+        xl: xl.toFixed(2).toString()
+    }
 
     try {
         await db.collection("ingredients").updateOne({ _id: _id }, { $set: ingredient })

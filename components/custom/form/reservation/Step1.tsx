@@ -78,13 +78,13 @@ export default function Step1({ values, errors, touched, handleBlur, handleChang
                 {errors.phone && touched.phone && <p className="text-red-500 text-sm pl-3">{errors.phone}</p>}
             </div>
 
-            <div className="lg:col-span-2 flex gap-4 justify-between">
+            <div className="lg:col-span-2 flex gap-4 justify-between max-lg:flex-col-reverse">
                 <Link href="/">
-                    <Button className="custom-button !text-lg" variant="destructive" type="button">Annulla</Button>
+                    <Button className="custom-button !text-lg max-lg:w-full" variant="destructive" type="button">Annulla</Button>
                 </Link>
                 <Button
                     type="button"
-                    className="custom-button !text-lg max-lg:grow"
+                    className="custom-button !text-lg max-lg:w-full"
                     disabled={!values.fullname || !values.phone || !!errors.fullname || !!errors.email || !!errors.phone}
                     onClick={() => setProgress(progress + 1)}
                 >

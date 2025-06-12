@@ -256,7 +256,7 @@ export default function FormUser({ children, type, id }: FormUserProps) {
                         </div>
                     </section>
                     <Separator />
-                    <DrawerFooter className="flex items-center justify-end gap-4 flex-row">
+                    <DrawerFooter className="flex lg:items-center justify-end gap-4 lg:flex-row flex-col-reverse">
                         <DrawerClose asChild>
                             <Button className="custom-button max-lg:grow" type='button' variant="destructive">Annulla</Button>
                         </DrawerClose>

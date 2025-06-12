@@ -116,9 +116,9 @@ export default function Step2({ values, errors, touched, handleBlur, handleChang
                 </div>
             )}
 
-            <div className="lg:col-span-2 flex gap-4 justify-between">
+            <div className="lg:col-span-2 flex gap-4 max-lg:flex-col-reverse justify-between">
                 <Button
-                    className="custom-button custom-button-outline !text-lg"
+                    className="custom-button custom-button-outline !text-lg max-lg:w-full"
                     variant="outline"
                     type="button"
                     onClick={() => setProgress(progress - 1)}
@@ -127,7 +127,7 @@ export default function Step2({ values, errors, touched, handleBlur, handleChang
                 </Button>
                 <Button
                     type="button"
-                    className="custom-button !text-lg max-lg:grow"
+                    className="custom-button !text-lg max-lg:w-full"
                     disabled={!values.type ||
                         (values.type === "domicile" && (!values.address?.street || !values.address?.street_number || !values.address?.cap || !values.address?.city))
                     }
