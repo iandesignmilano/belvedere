@@ -1,3 +1,7 @@
+'use client'
+
+import { useEffect } from "react"
+
 // formik
 import { FormikErrors, FormikTouched } from "formik"
 
@@ -7,13 +11,30 @@ import { Button } from "@/components/ui/button"
 import { DatePicker } from "@/components/ui/datePicker"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
+// action
+import { getBakingFree } from "@/actions/orders"
+
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // interface
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 type initialValue = {
-    date: string | undefined;
-    time: string;
+    date: string | undefined
+    time: string
+    order: {
+        id: number
+        name: string
+        ingredients: string
+        type: string
+        price: string
+        quantity: number
+        custom: {
+            name: string
+            price: string
+            xl: string
+        }[]
+        total: string
+    }[]
 }
 
 interface Step3Props {
@@ -33,6 +54,31 @@ interface Step3Props {
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 export default function Step3({ values, errors, touched, setFieldValue, progress, setProgress }: Step3Props) {
+
+    // --------------------------------------------------------------
+    // data slot
+    // --------------------------------------------------------------
+
+    // const [slots, setSlots] = useState<string[]>([])
+
+    useEffect(() => {
+        async function getSlots() {
+
+            const minimalOrder = values.order.map(item => ({ type: item.type, quantity: item.quantity }))
+            const res = await getBakingFree({ date: values.date as string, orders: minimalOrder })
+            console.log(res)
+            // setSlots([])
+            setFieldValue('time', "")
+        }
+
+        if (values.order && values.date) getSlots()
+    }, [values.order, values.date, setFieldValue])
+
+
+    // --------------------------------------------------------------
+    // code
+    // --------------------------------------------------------------
+
     return (
         <>
             <div className="space-y-2">

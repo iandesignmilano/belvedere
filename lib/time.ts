@@ -1,5 +1,5 @@
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// arrontonda l'orario
+// arrontonda l'orario 15 min
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 export function roundToNext15Minutes(date: Date): Date {
@@ -18,4 +18,15 @@ export function roundToNext15Minutes(date: Date): Date {
     }
 
     return rounded
+}
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// arrontonda l'orario 10 min
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+export function roundToNext10Min(date: Date): Date {
+    const minutes = date.getMinutes()
+    const rounded = Math.ceil(minutes / 10) * 10
+    date.setMinutes(rounded)
+    return date
 }

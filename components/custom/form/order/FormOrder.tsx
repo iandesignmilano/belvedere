@@ -53,6 +53,8 @@ const stepSchemas = [
 
                     name: yup.string().optional(),
 
+                    type_list: yup.string().optional(),
+
                     ingredients: yup.string().optional(),
 
                     type: yup

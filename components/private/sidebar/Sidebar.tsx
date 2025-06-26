@@ -5,7 +5,7 @@ import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupLabel, SidebarGroupC
 import { SidebarButton, SidebarLogoutButton } from "./SidebarButtons"
 
 // icons
-import { Home, User, Users, Calendar, Pizza, Utensils, Blocks } from "lucide-react"
+import { Home, User, Users, Calendar, Pizza, Utensils, Blocks, CupSoda, Salad, CircleDashed } from "lucide-react"
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // items
@@ -23,9 +23,32 @@ const app = [
         icon: <Blocks />
     },
     {
+        title: "Teglie",
+        url: "/private/teglie",
+        icon: <CircleDashed />
+    }
+]
+
+const lists = [
+    {
         title: "Ingredienti",
         url: "/private/ingredienti",
         icon: <Utensils />,
+    },
+    {
+        title: "Menù",
+        url: "/private/menu",
+        icon: <Pizza />,
+    },
+    {
+        title: "Contorni",
+        url: "/private/contorni",
+        icon: <Salad />,
+    },
+    {
+        title: "Bibite",
+        url: "/private/bibite",
+        icon: <CupSoda />,
     }
 ]
 
@@ -76,6 +99,20 @@ export default function Bar({ privileges }: { privileges: string }) {
                     <SidebarGroupContent>
                         <SidebarMenu>
                             {app.map((item, index) => (
+                                <SidebarMenuItem key={index}>
+                                    <SidebarButton name={item.title} icon={item.icon} path={item.url} />
+                                </SidebarMenuItem>
+                            ))}
+                        </SidebarMenu>
+                    </SidebarGroupContent>
+                </SidebarGroup>
+
+                {/* app */}
+                <SidebarGroup>
+                    <SidebarGroupLabel>Liste</SidebarGroupLabel>
+                    <SidebarGroupContent>
+                        <SidebarMenu>
+                            {lists.map((item, index) => (
                                 <SidebarMenuItem key={index}>
                                     <SidebarButton name={item.title} icon={item.icon} path={item.url} />
                                 </SidebarMenuItem>

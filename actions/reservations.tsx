@@ -13,11 +13,12 @@ import { ObjectId } from 'mongodb'
 import nodemailer from "nodemailer"
 
 // date
-import { format, isWeekend, parse } from "date-fns"
+import { format, isWeekend, parse, addMinutes } from "date-fns"
 
 // lib
 import { verifyAuth } from '@/lib/session'
 import { generateCode } from '@/lib/code'
+import { getTableResevation } from '@/lib/table'
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // conf
@@ -49,6 +50,7 @@ export type ReservationsProps = {
     date: string
     time: string
     type: string
+    table: string
 }
 
 export type AddProps = {
@@ -67,16 +69,16 @@ type UpdateProps = {
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// get reservations
+// get
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export async function getReservations() {
+export async function getReservations(date?: string) {
 
-    const today = format(new Date(), "dd-MM-yyyy")
+    const dt = date ? date : format(new Date(), "dd-MM-yyyy")
 
     const reservations = await db
         .collection("reservations")
-        .find({ date: today })
+        .find({ date: dt })
         .sort({ time: 1 })
         .toArray()
 
@@ -89,83 +91,15 @@ export async function getReservations() {
         date: el.date,
         time: el.time,
         code: el.code,
-        type: el.type
+        type: el.type,
+        table: el.table
     }))
 
     return result
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// get table free
-// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-export async function getTableFree(date: string, people: number) {
-
-    // prenotazioni
-    const reservations = await db.collection("reservations").find({ date }).sort({ time: 1 }).toArray()
-
-    // tavoli
-    const tables = await db.collection("tables").find({ people }).toArray()
-    if (!tables.length) return []
-
-    // orari disponibili (week o settimana)
-    const parsedDate = parse(date, "dd-MM-yyyy", new Date())
-    const weekend = isWeekend(parsedDate)
-
-    let slots: string[] = []
-    if (weekend || parsedDate.getDay() === 5) slots = ["19:00", "19:15", "20:30", "20:45"]
-    else {
-        for (let h = 19; h <= 21; h++) {
-            for (let m = 0; m < 60; m += 15) {
-                if (h === 21 && m > 0) break
-                slots.push(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`)
-            }
-        }
-    }
-
-    // slot disponibili
-    const availableSlots: string[] = []
-    for (const slot of slots) {
-        const reservationsAtSlot = reservations.filter(r => r.time === slot && r.people === people)
-
-        const usedCount = reservationsAtSlot.length
-        const totalTables = tables.reduce((sum, t) => sum + Number(t.total), 0)
-
-        if (usedCount < totalTables) availableSlots.push(slot)
-    }
-
-    return availableSlots
-}
-
-// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// get reservations by date
-// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-export async function getReservationsByDate(date: string) {
-
-    const reservations = await db
-        .collection("reservations")
-        .find({ date: date })
-        .sort({ time: 1 })
-        .toArray()
-
-    const result = reservations.map((el) => ({
-        _id: el._id.toString(),
-        fullname: el.fullname,
-        email: el.email,
-        phone: el.phone,
-        people: el.people,
-        date: el.date,
-        time: el.time,
-        code: el.code,
-        type: el.type
-    }))
-
-    return result
-}
-
-// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// get reservation
+// detail
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 export async function getReservation(id: string) {
@@ -186,7 +120,7 @@ export async function getReservation(id: string) {
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// add reservations
+// add
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 export async function addReservationAction(formData: AddProps, user?: string, office?: boolean) {
@@ -203,11 +137,17 @@ export async function addReservationAction(formData: AddProps, user?: string, of
     const { fullname, email, phone, people, date, time } = formData
     const code = generateCode()
     const type = office ? "office" : "online"
-    const reservation = { fullname, email, phone, people, date, time, code, type }
+
+    // table
+    const selectedTable = await getTableResevation({ date, time, people })
+    if (!selectedTable) return { errors: "Non ci sono tavoli disponibili per l'orario selezionato." }
+
+    // data
+    const reservation = { fullname, email, phone, people, date, time, code, type, table: selectedTable }
 
     // message
     const message = {
-        from: "Website <website@iandesign.it>",
+        from: "Pizzeria Belvedere <pizzeriabelvederesenago2000@gmail.com>",
         to: email,
         subject: "Prenotazione effettuata con successo!",
         html: (`
@@ -246,7 +186,7 @@ export async function addReservationAction(formData: AddProps, user?: string, of
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// update reservations
+// update
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 export async function updateReservationAction(id: string, formData: UpdateProps) {
@@ -255,7 +195,12 @@ export async function updateReservationAction(id: string, formData: UpdateProps)
 
     // data
     const { people, date, time } = formData
-    const reservation = { people, date, time }
+
+    // table
+    const selectedTable = await getTableResevation({ date, time, people })
+    if (!selectedTable) return { errors: "Non ci sono tavoli disponibili per l'orario selezionato." }
+
+    const reservation = { people, date, time, table: selectedTable }
 
     try {
         await db.collection("reservations").updateOne({ _id: _id }, { $set: reservation })
@@ -266,7 +211,7 @@ export async function updateReservationAction(id: string, formData: UpdateProps)
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// delete reservations
+// delete
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 export async function deleteReservationAction(id: string): Promise<{ success: boolean }> {
@@ -275,4 +220,68 @@ export async function deleteReservationAction(id: string): Promise<{ success: bo
     if (result.deletedCount === 0) return { success: false }
     revalidatePath("/private/prenotazioni")
     return { success: true }
+}
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// free
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+export async function getTableFree(date: string, people: number, reservationId?: string) {
+
+    // prenotazioni
+    const reservations = await db.collection("reservations").find({ date }).sort({ time: 1 }).toArray()
+
+    // tavoli in base alle persone
+    const tables = await db
+        .collection("tables")
+        .find({ $or: [{ people: { $gte: people } }, { max: { $gte: people } }] })
+        .toArray()
+
+    if (!tables.length) return []
+
+    // orari
+    const parsedDate = parse(date, "dd-MM-yyyy", new Date())
+    const weekend = isWeekend(parsedDate)
+
+    let slots: string[] = []
+    if (weekend || parsedDate.getDay() === 5) slots = ["19:00", "19:15", "20:30", "20:45"]
+    else {
+        for (let h = 19; h <= 21; h++) {
+            for (let m = 0; m < 60; m += 15) {
+                if (h === 21 && m > 0) break
+                slots.push(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`)
+            }
+        }
+    }
+
+    // permanenza
+    const slotTimes = slots.map(s => ({ raw: s, date: parse(s, "HH:mm", parsedDate), }))
+    const DURATION_MINUTES = 90
+
+    // slot liberi
+    const availableSlots: string[] = []
+    for (const { raw: slot, date: slotDate } of slotTimes) {
+
+        // tavoli occupati
+        const reservedTables = reservations
+            .filter(r => {
+                if (reservationId && r._id.toString() === reservationId) return false
+                const resTime = parse(r.time, "HH:mm", parsedDate)
+                const resEnd = addMinutes(resTime, DURATION_MINUTES)
+                return slotDate >= resTime && slotDate < resEnd
+            })
+            .flatMap(r => r.table.split(" + ").map((t: string) => t.trim()))
+
+        // tavoli disponibili
+        const freeTables = tables.filter(t =>
+            !reservedTables.includes(t.name) &&
+            (!t.union || !reservedTables.includes(t.union))
+        )
+
+        // tavolo disponibile per tot persone
+        const match = freeTables.find(t => (t.people >= people) || (t.union && t.max >= people))
+        if (match) availableSlots.push(slot)
+    }
+
+    return availableSlots
 }

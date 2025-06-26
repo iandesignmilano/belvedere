@@ -13,11 +13,14 @@ import { ObjectId } from 'mongodb'
 // interface
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export type IngredientsProps = {
-    _id: string
+type Ingredient = {
     name: string
     price: string
     xl: string
+}
+
+export interface IngredientsProps extends Ingredient {
+    _id: string
 }
 
 type ActionProps = {
@@ -90,9 +93,41 @@ export async function updateIngredientAction(id: string, formData: ActionProps) 
     }
 
     try {
+
+        // aggiornamento
         await db.collection("ingredients").updateOne({ _id: _id }, { $set: ingredient })
+
+        // aggiornamento prezzi menù
+        const affectedMenus = await db.collection("menu").find({ ingredients: { $elemMatch: { name: name } } }).toArray()
+        for (const menu of affectedMenus) {
+            const updatedIngredients = menu.ingredients.map((ing: Ingredient) => {
+                if (ing.name === name) return { ...ing, price: ingredient.price, xl: ingredient.xl }
+                return ing
+            })
+
+            const basePrice = parseFloat(menu.price) || 0
+            const baseXL = parseFloat(menu.xl) || 0
+
+            const ingredientsPrice = updatedIngredients.reduce((sum: number, ing: any) => sum + parseFloat(ing.price || "0"), 0)
+            const ingredientsXL = updatedIngredients.reduce((sum: number, ing: any) => sum + parseFloat(ing.xl || "0"), 0)
+
+            const total_base = (basePrice + ingredientsPrice).toFixed(2)
+            const total_xl = (baseXL + ingredientsXL).toFixed(2)
+
+            await db.collection("menu").updateOne(
+                { _id: menu._id },
+                { $set: { ingredients: updatedIngredients, total_base, total_xl } }
+            )
+        }
+
+        // revalidate
         revalidatePath("/private/ingredienti")
         revalidatePath("/ordina")
+        revalidatePath("/private/menu")
+        revalidatePath("/ordina")
+        revalidatePath("/menu")
+        revalidatePath("/")
+
         return { success: true }
     } catch { return { errors: "Si è verificato un errore, riprova più tardi" } }
 

@@ -1,6 +1,4 @@
 // data
-import { MenuList, teglie } from "@/assets/data/menu"
-
 import { buttonsList } from "./Banner"
 
 // components
@@ -8,6 +6,21 @@ import MotionText from "../custom/motion/MotionText"
 import MotionImage from "../custom/motion/MotionImage"
 import MotionMenu from "../custom/motion/MotionMenu"
 import MotionButton from "../custom/motion/MotionButton"
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// interface
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+interface MenuProps {
+    data: {
+        name: string
+        ingredients: {
+            name: string
+        }[]
+        total_base: string
+        total_xl: string
+    }[]
+}
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // data
@@ -32,13 +45,13 @@ const dataMenu = {
 // menu home page
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export function Menu() {
+export function Menu({ data }: MenuProps) {
     return (
         <section className="custom-section bg-food">
             <div className="custom-container flex flex-col-reverse xl:grid xl:grid-cols-2 gap-16">
                 <div className="flex flex-col gap-8">
                     <MotionText title={dataMenu.title} text={dataMenu.text} />
-                    <MotionMenu menu={MenuList} small />
+                    <MotionMenu menu={data} />
                     <MotionText button={dataMenu.button} />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -53,19 +66,15 @@ export function Menu() {
 // menu page
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export function MenuListPage() {
+export function MenuListPage({ data }: MenuProps) {
     return (
         <section className="custom-section bg-food">
             <div className="custom-container flex flex-col gap-8">
-                <span className="mb-8">
-                    <MotionText title="Teglie" />
-                </span>
-                <MotionMenu menu={teglie} teglie />
                 <span className="mt-8">
                     <MotionText title="Pizze" />
                 </span>
                 <div className="flex flex-col gap-8">
-                    <MotionMenu menu={MenuList} />
+                    <MotionMenu menu={data} />
                 </div>
                 <div className="flex max-lg:flex-col gap-8 lg:gap-4 mt-8 lg:mt-16 lg:justify-end">
                     <MotionButton buttons={buttonsList} show className="py-4 shadow-2xl shadow-primary" />

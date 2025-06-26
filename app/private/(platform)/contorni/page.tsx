@@ -4,26 +4,26 @@ import ListElements from "@/components/private/lists/ListElements"
 
 // action
 import { getProfilePrivileges } from "@/actions/profile"
-import { getIngredients } from "@/actions/ingredients"
+import { getOutlines } from "@/actions/outlines"
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export default async function IngredientsPage() {
+export default async function OutlinePage() {
 
     const user = await getProfilePrivileges()
     const privileges = (user?.superuser ? "all" : user?.privileges) as string
 
-    const ingredients = await getIngredients()
+    const outlines = await getOutlines()
 
-    if (!ingredients) { return <>Caricamento....</> }
+    if (!outlines) { return <>Caricamento....</> }
 
     return (
         <>
-            <Hero path={[{ name: "Ingredienti" }]} />
+            <Hero path={[{ name: "Contorni" }]} />
             <section className="px-4 pb-4 w-full md:py-2 flex flex-col gap-4">
-                <ListElements elements={ingredients} privileges={privileges} name="ingrediente" />
+                <ListElements elements={outlines} privileges={privileges} name="contorno" />
             </section>
         </>
     )

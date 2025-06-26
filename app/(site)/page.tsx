@@ -4,11 +4,17 @@ import { About, Quality } from "@/components/site/About"
 import Banner from "@/components/site/Banner"
 import { Menu } from "@/components/site/Menu"
 
+// action
+import { getMenu } from "@/actions/menu"
+
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export default function HomePage() {
+export default async function HomePage() {
+
+    const pizze = await getMenu(7)
+
     return (
         <>
             <Intro />
@@ -22,7 +28,7 @@ export default function HomePage() {
                 ]}
                 bg="bg-pizza"
             />
-            <Menu />
+            <Menu data={pizze} />
             <Banner
                 title="A casa o da noi?"
                 text={[

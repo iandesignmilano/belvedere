@@ -184,13 +184,13 @@ export default function FormReservationPrivate({ children, type, id, user, offic
     useEffect(() => {
 
         async function getSlots() {
-            const res = await getTableFree(values.date as string, values.people)
+            const id_reservation = id ? id : undefined
+            const res = await getTableFree(values.date as string, values.people, id_reservation)
             setSlots(res)
-            if (!office) setFieldValue('time', "")
         }
 
         if (values.date && values.people) getSlots()
-    }, [values.date, values.people, setFieldValue, open, office])
+    }, [values.date, values.people, setFieldValue, open, office, id])
 
 
     // --------------------------------------------------------------
@@ -276,6 +276,7 @@ export default function FormReservationPrivate({ children, type, id, user, offic
                                             const qta = values.people + 1
                                             setFieldValue("people", qta)
                                             setFieldTouched("people", true, true)
+                                            setFieldValue('time', "")
                                         }}
                                     >
                                         <Plus className="size-4" />
@@ -288,6 +289,7 @@ export default function FormReservationPrivate({ children, type, id, user, offic
                                             const qta = values.people == 1 ? 1 : values.people - 1
                                             setFieldValue("people", qta)
                                             setFieldTouched("people", true, true)
+                                            setFieldValue('time', "")
                                         }}
                                     >
                                         <Minus className="size-4" />
@@ -297,42 +299,38 @@ export default function FormReservationPrivate({ children, type, id, user, offic
                             {errors.people && touched.people && <p className="text-red-500 text-sm pl-3">{errors.people}</p>}
                         </div>
 
-                        {!office && (
-                            <>
-                                <div className="space-y-2">
-                                    <Label className="text-base pl-3">Data prenotazione</Label>
-                                    <DatePicker
-                                        placeholder="Data prenotazione"
-                                        onChange={(date) => {
-                                            setFieldValue('date', date)
-                                            setFieldValue('time', "")
-                                        }}
-                                        value={values.date}
-                                        className={errors.date && touched.date ? "custom-form-error" : ""}
-                                    />
-                                    {errors.date && touched.date && <p className="text-red-500 text-sm pl-3">{errors.date}</p>}
-                                </div>
+                        <div className="space-y-2">
+                            <Label className="text-base pl-3">Data prenotazione</Label>
+                            <DatePicker
+                                placeholder="Data prenotazione"
+                                onChange={(date) => {
+                                    setFieldValue('date', date)
+                                    setFieldValue('time', "")
+                                }}
+                                value={values.date}
+                                className={errors.date && touched.date ? "custom-form-error" : ""}
+                            />
+                            {errors.date && touched.date && <p className="text-red-500 text-sm pl-3">{errors.date}</p>}
+                        </div>
 
-                                <div className="space-y-2">
-                                    <Label className="text-base pl-3">Orari disponibili</Label>
-                                    <Select
-                                        value={values.time}
-                                        onValueChange={(value) => setFieldValue('time', value)}
-                                        disabled={!values.date}
-                                    >
-                                        <SelectTrigger className="w-full">
-                                            <SelectValue placeholder="Orari disponibili" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {slots.map((el, i) => <SelectItem key={i} value={el}>{el}</SelectItem>)}
-                                        </SelectContent>
-                                    </Select>
-                                    {!values.date && <p className="text-sm pl-3 text-muted-foreground">Seleziona una data per vedere gli orari</p>}
-                                    {type == "update" && <p className="text-sm pl-3 text-muted-foreground">Orario prenotazione attuale: {initial.time}</p>}
-                                    {errors.time && touched.time && <p className="text-red-500 text-sm pl-3">{errors.time}</p>}
-                                </div>
-                            </>
-                        )}
+                        <div className="space-y-2">
+                            <Label className="text-base pl-3">Orari disponibili</Label>
+                            <Select
+                                value={values.time}
+                                onValueChange={(value) => setFieldValue('time', value)}
+                                disabled={!values.date}
+                            >
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Orari disponibili" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {slots.map((el, i) => <SelectItem key={i} value={el}>{el}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                            {!values.date && <p className="text-sm pl-3 text-muted-foreground">Seleziona una data per vedere gli orari</p>}
+                            {type == "update" && <p className="text-sm pl-3 text-muted-foreground">Orario prenotazione attuale: {initial.time}</p>}
+                            {errors.time && touched.time && <p className="text-red-500 text-sm pl-3">{errors.time}</p>}
+                        </div>
 
                     </section>
                     <Separator />

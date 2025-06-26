@@ -8,11 +8,11 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "../../ui/separator"
 
 // actions and hook
-import { ReservationsProps, getReservations, getReservationsByDate } from "@/actions/reservations"
+import { ReservationsProps, getReservations } from "@/actions/reservations"
 import { useSocket } from "@/components/custom/Socket"
 
 // icons
-import { Pen } from "lucide-react"
+import { Pen, Phone, Calendar, Blocks } from "lucide-react"
 
 // components
 import DateReservations from "./DateReservations"
@@ -67,7 +67,7 @@ export default function ReservationsList({ reservations, user, privileges }: Res
             setList(reservations)
             return
         }
-        const data = await getReservationsByDate(value)
+        const data = await getReservations(value)
         setList(data)
     }
 
@@ -133,8 +133,18 @@ export default function ReservationsList({ reservations, user, privileges }: Res
                     <div className="space-y-2">
                         {el.type == "online" ? <Badge>Online</Badge> : <Badge variant="outline">In sede</Badge>}
                         <h2 className="text-xl text-primary">({el.code}) {el.fullname} x {el.people}</h2>
-                        <h4 className="text-foreground">{el.date} | {el.time}</h4>
-                        <h4 className="text-muted-foreground">{el.phone}</h4>
+                        <h4 className="text-sm text-foreground flex gap-2 items-center">
+                            <Calendar className="size-4" />
+                            <span>{el.date} | {el.time}</span>
+                        </h4>
+                        <h4 className="text-sm text-foreground flex gap-2 items-center">
+                            <Blocks className="size-4" />
+                            <span>Tavolo: {el.table}</span>
+                        </h4>
+                        <h4 className="text-sm text-muted-foreground flex gap-2 items-center">
+                            <Phone className="size-4" />
+                            <span>{el.phone}</span>
+                        </h4>
                         {(privileges == "all" || privileges.includes('update') || privileges.includes('delete')) && (
                             <div className="flex items-center gap-4 justify-end">
                                 {(privileges == "all" || privileges.includes('update')) && (

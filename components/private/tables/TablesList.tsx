@@ -36,9 +36,15 @@ export default function TablesList({ tables, privileges }: { tables: TablesProps
             <div className="grid lg:grid-cols-2 xl:grid-cols-4 gap-4 items-start">
                 {tables.map((el) => (
                     <React.Fragment key={el._id}>
-                        <div className="space-y-4 p-4 rounded-xl border text-center">
-                            <h2 className="text-xl text-primary">Tavoli per {el.people} persone</h2>
-                            <h4 className="text-primary bg-slate-200 p-4 rounded-xl text-4xl">{el.total}</h4>
+                        <div className="space-y-4 p-4 rounded-xl border">
+                            <h2 className="text-xl text-primary">Nome tavolo: {el.name}</h2>
+                            <h4 className="text-xl">Posti: {el.people}</h4>
+                            <Separator />
+
+                            <h4 className="text-xl">Tavolo: {el.union || "--"}</h4>
+                            <h4 className="text-xl">Posti: {el.max || el.people}</h4>
+
+                            <Separator />
                             {(privileges == "all" || privileges.includes('update') || privileges.includes('delete')) && (
                                 <div className="flex items-center justify-between gap-4">
                                     {(privileges == "all" || privileges.includes('update')) && (

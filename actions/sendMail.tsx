@@ -42,7 +42,7 @@ export async function sendMailWorkAction(formData: sendMailWorkProps) {
 
         // message
         const message = {
-            from: "Website <website@iandesign.it>",
+            from: "Pizzeria Belvedere <pizzeriabelvederesenago2000@gmail.com>",
             to: "riky.ianna12@gmail.com",
             subject: "Nuova candidatura",
             html: (`

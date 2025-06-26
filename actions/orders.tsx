@@ -18,6 +18,7 @@ import { format } from "date-fns"
 // lib
 import { verifyAuth } from '@/lib/session'
 import { generateCode } from '@/lib/code'
+import { roundToNext10Min } from '@/lib/time'
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // conf
@@ -46,17 +47,22 @@ type AddressProps = {
     cap: string
 }
 
+interface Ingredient {
+    name: string
+    price: string
+    xl: string
+}
+
 export type ItemsProps = {
     id: string
     name: string
-    ingredients: string
+    ingredients: Ingredient[]
     type: string
+    type_list: string
     price: string
     quantity: number
-    custom: {
-        name: string
-        price: string
-    }[] | null
+    removed: Ingredient[] | null
+    custom: Ingredient[] | null
     total: string
 }
 
@@ -79,6 +85,15 @@ export interface OrdersProps extends OrderBase {
 }
 
 type AddOrderProps = OrderBase
+
+
+interface BakingProps {
+    date: string
+    orders: {
+        type: string
+        quantity: number
+    }[]
+}
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // get orders
@@ -141,6 +156,28 @@ export async function getOrdersByDate(date: string) {
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// get table free
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+const FRACTION = { base: 1 / 6, xl: 1 / 4 }
+
+export async function getBakingFree({ date, orders }: BakingProps) {
+    if (!date) return []
+
+    // time
+    const now = new Date()
+    now.setMinutes(now.getMinutes() + 30)
+    const start = roundToNext10Min(now)
+
+    // ordini
+    const existingOrders = await db
+        .collection("orders")
+        .find({ date })
+        .sort({ time: 1 })
+        .toArray()
+}
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // add reservations
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -160,7 +197,7 @@ export async function addOrderAction(formData: AddOrderProps, user?: string) {
 
     // message
     const message = {
-        from: "Website <website@iandesign.it>",
+        from: "Pizzeria Belvedere <pizzeriabelvederesenago2000@gmail.com>",
         to: formData.email,
         subject: "Ordine effettuato con successo!",
         html: (`
@@ -186,14 +223,23 @@ export async function addOrderAction(formData: AddOrderProps, user?: string) {
             ${formData.order.map((order) => `
                 <div style="background:#f1f5f9; padding:1rem; margin-bottom:1rem; border-radius:8px;">
                     <p>${order.name}</p>
-                    <p>${order.ingredients}</p>
-                    ${order.custom && order.custom?.length > 0 && `
-                        <hr />
-                        ${order.custom.map((custom) => `<p key={i} className="text-sm"> + ${custom.name} ${custom.price}€</p>`)}
-                    `}
+
+                    ${order.ingredients && order.ingredients.length > 0 ? `<p>${order.ingredients.map(ing => ing.name).join(", ")}</p>` : ""}
+
                     <hr />
-                    <p><strong>Tipologia:</strong> ${order.type}</p>
+
+                    ${order.type_list == "pizze" ? `<p><strong>Tipologia:</strong> ${order.type}</p>` : ""}
+
                     <p><strong>Prezzo:</strong> ${order.price}€</p>
+
+                    ${order.removed && order.removed?.length > 0 ? `
+                        ${order.removed.map((custom) => `<p> - ${custom.name} ${order.type == "base" ? custom.price : custom.xl}€</p>`).join('')}
+                    ` : ""}
+
+                    ${order.custom && order.custom?.length > 0 ? `
+                        ${order.custom.map((custom) => `<p> + ${custom.name} ${order.type == "base" ? custom.price : custom.xl}€</p>`).join('')}
+                    ` : ""}
+
                     <p><strong>Quantità:</strong> ${order.quantity}</p>
                     <p><strong>Totale:</strong> ${order.total}€</p>
                 </div>
@@ -219,7 +265,7 @@ export async function addOrderAction(formData: AddOrderProps, user?: string) {
         revalidatePath("/private/ordini")
         return { success: true }
     }
-    catch { return { errors: "Si è verificato un errore, riprova più tardi" } }
+    catch (err) { console.log(err); return { errors: "Si è verificato un errore, riprova più tardi" } }
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

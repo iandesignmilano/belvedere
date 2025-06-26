@@ -1,7 +1,7 @@
 // next
 import Link from "next/link"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 // formik
 import { FormikErrors, FormikTouched, FormikHelpers } from "formik"
@@ -18,30 +18,36 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter, DrawerClose } from "@/components/ui/drawer"
 
 // icons
-import { Plus, Pizza } from "lucide-react"
+import { Plus, Pizza, Salad, CupSoda, Minus, LoaderCircle } from "lucide-react"
 
-// data
-import { MenuList } from "@/assets/data/menu"
+// action
+import { getMenu } from "@/actions/menu"
+import { getDrinks } from "@/actions/drinks"
+import { getOutlines } from "@/actions/outlines"
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // interface
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+export interface Ingredient {
+    name: string
+    price: string
+    xl: string
+}
+
 export type initialValue = {
     order: {
         id: number
         name: string
-        ingredients: string
+        type_list: string
+        ingredients: Ingredient[]
         type: string
         price: string
         quantity: number
-        custom: {
-            name: string
-            price: string
-            xl: string
-        }[]
+        removed: Ingredient[]
+        custom: Ingredient[]
         total: string
-    }[];
+    }[]
 }
 
 type singleValue = initialValue["order"][number]
@@ -57,6 +63,44 @@ interface Step1Props {
     progress: number;
 }
 
+export interface GetDataProps {
+    name: string
+    price: string
+    ingredients?: Ingredient[]
+    total_base?: string
+    total_xl?: string
+}
+
+export type SelectedData = GetDataProps & { index: number }
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// data
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+const getData = {
+    pizze: getMenu,
+    drinks: getDrinks,
+    outline: getOutlines
+}
+
+const text = {
+    pizze: {
+        description: "Seleziona le pizze che vuoi gustare",
+        detail: "",
+        icon: <Pizza className="size-4" />
+    },
+    drinks: {
+        description: "Scegli le bibite per accompagnare il tuo pasto",
+        detail: "Bevanda fresca per ogni gusto",
+        icon: <CupSoda className="size-4" />
+    },
+    outline: {
+        description: "Completa il tuo ordine con un contorno sfizioso",
+        detail: "Contorno perfetto per arricchire il tuo pasto",
+        icon: <Salad className="size-4" />
+    }
+}
+
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -64,6 +108,26 @@ interface Step1Props {
 export default function Step1({ values, errors, touched, setFieldValue, setFieldTouched, progress, setProgress }: Step1Props) {
 
     const [updated, setUpdated] = useState(false)
+
+    const [loader, setLoader] = useState(false)
+
+    // --------------------------------------------------------------
+    // get data
+    // --------------------------------------------------------------
+
+    const [active, setActive] = useState<keyof typeof getData>("pizze")
+
+    const [list, setList] = useState<GetDataProps[]>([])
+
+    useEffect(() => {
+        async function fetchData() {
+            setLoader(true)
+            const res = await getData[active]()
+            setList(res)
+            setTimeout(() => setLoader(false), 1000)
+        }
+        fetchData()
+    }, [active])
 
     // --------------------------------------------------------------
     // form data
@@ -75,10 +139,10 @@ export default function Step1({ values, errors, touched, setFieldValue, setField
     // selected
     // --------------------------------------------------------------
 
-    const [selected, setSelected] = useState<Record<string, string | number>>({})
-    const selected_length = Object.keys(selected).length
+    const [selected, setSelected] = useState<SelectedData | null>(null)
+    const selected_length = selected ? Object.keys(selected).length : 0
 
-    const resetSelected = () => setSelected({})
+    const resetSelected = () => setSelected(null)
 
     // --------------------------------------------------------------
     // get
@@ -87,15 +151,31 @@ export default function Step1({ values, errors, touched, setFieldValue, setField
     //price
     const getPrice = (index: number) => {
         const element = values.order.find((el) => el.id == index)
-        const total = element?.total || "--"
+        const price = active == "pizze" ? "--" : element?.price
+        const total = element?.total || price
         return total == "--" ? "--" : `${total}€`
     }
 
     // data
-    const getSelected = (data: Record<string, string>) => {
+    const getSelected = (data: GetDataProps) => {
         setSelected({ ...data, index: values.order.length + 1 })
 
-        const newOrder = { id: values.order.length + 1, name: data.name, ingredients: data.ingredients, type: "", price: "", quantity: 1, custom: [], total: "" }
+        let newOrder = {}
+        if (active == "pizze") {
+            newOrder = {
+                id: values.order.length + 1,
+                name: data.name,
+                ingredients: data.ingredients,
+                type: "",
+                price: "",
+                quantity: 1,
+                custom: [],
+                removed: [],
+                total: "",
+                type_list: active
+            }
+        } else newOrder = { id: values.order.length + 1, name: data.name, type: "base", price: data.price, quantity: 1, total: data.price, type_list: active }
+
         setFieldValue("order", [...values.order, newOrder])
     }
 
@@ -116,9 +196,16 @@ export default function Step1({ values, errors, touched, setFieldValue, setField
     // update
     // --------------------------------------------------------------
 
-    const updateSelected = (data: singleValue) => {
-        const menu = MenuList.find((el) => el.name == data.name)
-        setSelected({ ...menu, index: data.id })
+    const updateSelected = async (data: singleValue) => {
+
+        const type = data.type_list as "pizze" | "drinks" | "outline"
+        setActive(type)
+
+        const res = await getData[type]()
+        setList(res)
+
+        const menu = res.find((el) => el.name == data.name)
+        if (menu) setSelected({ ...menu, index: data.id })
         setUpdated(true)
         setOpen(true)
     }
@@ -143,8 +230,12 @@ export default function Step1({ values, errors, touched, setFieldValue, setField
     // --------------------------------------------------------------
 
     const [open, setOpen] = useState(false)
-    const drawer_title = selected_length === 0 ? "Il tuo ordine" : selected.name
-    const drawer_description = selected_length === 0 ? "Seleziona le pizze che vuoi gustare" : selected.ingredients
+    const drawer_title = selected_length === 0 ? "Il tuo ordine" : selected?.name
+    const drawer_description = selected_length === 0
+        ? text[active].description
+        : active == "pizze" && Array.isArray(selected?.ingredients)
+            ? (selected?.ingredients as Ingredient[]).map(ing => ing.name).join(", ")
+            : text[active].detail
 
     // --------------------------------------------------------------
     // search
@@ -152,7 +243,7 @@ export default function Step1({ values, errors, touched, setFieldValue, setField
 
     const [search, setSearch] = useState("")
 
-    const filteredList = MenuList.filter(el => {
+    const filteredList = list.filter(el => {
         if (!search.trim()) return true
         return el.name?.toLowerCase().includes(search.toLowerCase())
     })
@@ -167,18 +258,46 @@ export default function Step1({ values, errors, touched, setFieldValue, setField
                 <Accordion type="single" collapsible className="bg-input rounded-xl px-4 lg:col-span-2">
                     {values.order.map((el, i) => (
                         <AccordionItem key={i} value={`item-${i}`} className="border-slate-300">
-                            <AccordionTrigger className="text-primary text-lg items-center">{el.quantity} X {el.name} - {el.type.toUpperCase()}</AccordionTrigger>
+                            <AccordionTrigger className="text-primary text-lg items-center">
+                                <span className="flex items-center gap-2">
+                                    <span className="block bg-primary text-white p-2 rounded-full">
+                                        {text[el.type_list as "pizze" | "drinks" | "outline"].icon}
+                                    </span>
+                                    {el.quantity} X {el.name} {el.type_list == "pizze" && `- ${el.type.toUpperCase()}`}
+                                </span>
+                            </AccordionTrigger>
                             <AccordionContent className="space-y-4">
                                 <Separator className="bg-slate-300" />
                                 <p className="text-sm flex items-center justify-between gap-2">
-                                    <div className="flex items-center gap-2">
-                                        <Pizza className="size-4" />
+                                    <span className="flex items-center gap-2">
+                                        {text[el.type_list as "pizze" | "drinks" | "outline"].icon}
                                         <span>Prezzo</span>
-                                    </div>
+                                    </span>
                                     <span>{(parseFloat(el.price) * el.quantity).toFixed(2).toString()}€</span>
                                 </p>
 
-                                {el.custom.length > 0 && (
+                                {el.removed && el.removed.length > 0 && (
+                                    <>
+                                        <Separator className="bg-slate-300" />
+                                        {el.removed.map((add, i) => {
+
+                                            const price = el.type == "base" ? add.price : add.xl
+                                            const total = (parseFloat(price) * el.quantity).toFixed(2).toString()
+
+                                            return (
+                                                <div key={i} className="text-sm flex items-center justify-between gap-2">
+                                                    <div className="flex items-center gap-2">
+                                                        <Minus className="size-4 text-red-600" />
+                                                        <span>{add.name}</span>
+                                                    </div>
+                                                    <span>{total}€</span>
+                                                </div>
+                                            )
+                                        })}
+                                    </>
+                                )}
+
+                                {el.custom && el.custom.length > 0 && (
                                     <>
                                         <Separator className="bg-slate-300" />
                                         {el.custom.map((add, i) => {
@@ -201,10 +320,10 @@ export default function Step1({ values, errors, touched, setFieldValue, setField
 
                                 <Separator className="bg-slate-300" />
                                 <p className="text-base font-bold flex items-center justify-between gap-2">
-                                    <div className="flex items-center gap-2">
-                                        <Pizza className="size-4" />
+                                    <span className="flex items-center gap-2">
+                                        {text[el.type_list as "pizze" | "drinks" | "outline"].icon}
                                         <span>Totale</span>
-                                    </div>
+                                    </span>
                                     <span>{el.total}€</span>
                                 </p>
 
@@ -221,9 +340,7 @@ export default function Step1({ values, errors, touched, setFieldValue, setField
                                     <Button
                                         type="button"
                                         className="max-lg:grow rounded-full"
-                                        onClick={() => {
-                                            updateSelected(el)
-                                        }}
+                                        onClick={() => updateSelected(el)}
                                     >
                                         Modifica
                                     </Button>
@@ -271,12 +388,51 @@ export default function Step1({ values, errors, touched, setFieldValue, setField
                         <DrawerDescription className="text-base">{drawer_description}</DrawerDescription>
                         {selected_length === 0 && <Input placeholder="Cerca..." value={search} onChange={(e) => setSearch(e.target.value)} />}
                     </DrawerHeader>
-                    <Separator />
+                    {selected_length === 0 && (
+                        <>
+                            <Separator className="mb-4" />
+                            <div className="flex items-center justify-between gap-4 px-4">
+                                <Button
+                                    className={`rounded-full grow ${active == "pizze" ? "bg-primary border-primary text-white" : "custom-button-outline"}`}
+                                    variant="outline"
+                                    onClick={() => setActive("pizze")}
+                                >
+                                    <Pizza /> Pizze
+                                </Button>
+                                <Button
+                                    className={`rounded-full grow ${active == "outline" ? "bg-primary border-primary text-white" : "custom-button-outline"}`}
+                                    variant="outline"
+                                    onClick={() => setActive("outline")}
+                                >
+                                    <Salad /> Contorni
+                                </Button>
+                                <Button
+                                    className={`rounded-full grow ${active == "drinks" ? "bg-primary border-primary text-white" : "custom-button-outline"}`}
+                                    variant="outline"
+                                    onClick={() => setActive("drinks")}
+                                >
+                                    <CupSoda /> Bibite
+                                </Button>
+                            </div>
+                        </>
+                    )}
 
-                    <section className="space-y-4 px-4 mt-4 overflow-y-auto flex-1">
-                        {selected_length === 0 && <Step1DrawerList list={filteredList} getSelected={getSelected} />}
-                        {selected_length > 0 && <Step1DrawerForm selected={selected} {...form} />}
-                    </section>
+                    <Separator className="my-4" />
+
+                    {loader && (
+                        <div className="text-lg text-primary flex items-center gap-2 px-4">
+                            <LoaderCircle className="animate-spin" />
+                            Caricamento...
+                        </div>
+                    )}
+
+                    {!loader && (
+                        <section className="space-y-4 px-4 overflow-y-auto flex-1">
+                            {selected_length === 0 && <Step1DrawerList list={filteredList} getSelected={getSelected} name={active} />}
+                            {selected_length > 0 && selected && <Step1DrawerForm selected={selected} {...form} active={active} />}
+                        </section>
+                    )}
+
 
                     <DrawerFooter className="lg:items-end">
                         {selected_length === 0 && (
@@ -287,20 +443,20 @@ export default function Step1({ values, errors, touched, setFieldValue, setField
 
                         {selected_length > 0 && (
                             <>
-                                <div>Totale: {getPrice(selected.index as number)}</div>
+                                <div>Totale: {getPrice(selected?.index as number)}</div>
                                 <Separator className="my-2" />
                                 <section className="flex lg:items-center max-lg:flex-col-reverse gap-4 justify-between">
                                     <Button
                                         className="custom-button custom-button-outline !text-lg"
                                         variant="outline"
-                                        onClick={() => updated ? resetUpdate() : deleteSelected(selected.index as number)}
+                                        onClick={() => updated ? resetUpdate() : deleteSelected(selected?.index as number)}
                                     >
                                         Annulla
                                     </Button>
                                     <DrawerClose asChild onClick={() => setOpen(false)}>
                                         <Button
                                             className="custom-button !text-lg max-lg:grow"
-                                            disabled={getDataCheck(selected.index as number)}
+                                            disabled={getDataCheck(selected?.index as number)}
                                         >
                                             Conferma
                                         </Button>

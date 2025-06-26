@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useCallback } from "react"
+import React, { useCallback } from "react"
 
 // shad
 import { Button } from "@/components/ui/button"
@@ -9,15 +9,11 @@ import { Separator } from "@/components/ui/separator"
 // icons
 import { CreditCard, House, Loader2 } from "lucide-react"
 
-// stripe
-import { loadStripe } from "@stripe/stripe-js"
-import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js"
-
 // action
-import { createPaymentIntent } from "@/actions/stripe"
+// import { createSumupCheckout } from "@/actions/sumup"
 
-// components
-import { ToastDanger } from "../../Toast"
+// interface
+import { Ingredient } from "./Step1"
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // interface
@@ -39,15 +35,12 @@ export type initialValue = {
     order: {
         id: number
         name: string
-        ingredients: string
+        ingredients: Ingredient[]
         type: string
         price: string
         quantity: number
-        custom: {
-            name: string
-            price: string
-            xl: string
-        }[]
+        removed: Ingredient[]
+        custom: Ingredient[]
         total: string
     }[];
 
@@ -65,12 +58,6 @@ interface Step5Props {
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// stripe init
-// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY!)
-
-// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -78,7 +65,7 @@ export default function Step5({ values, progress, setProgress, setFieldValue, su
 
     const type_name: Record<string, string> = { take_away: "Asporto", domicile: "Domicilio" }
 
-    const shipping = "9.00"
+    const shipping = "3.00"
 
     // --------------------------------------------------------------
     // total
@@ -86,93 +73,18 @@ export default function Step5({ values, progress, setProgress, setFieldValue, su
 
     const getTotal = useCallback(() => {
         const totalOrderPrice = values.order.reduce((sum, order) => sum + parseFloat(order.total), 0)
-        const commission = totalOrderPrice * 0.015 + 0.25
-        const totalPartial = (totalOrderPrice + commission + 2).toFixed(2).toString()
-        const total = (parseFloat(totalPartial) + parseFloat(shipping)).toFixed(2).toString()
-        return values.type == "domicile" ? total : totalPartial
+        const total = (totalOrderPrice + parseFloat(shipping)).toFixed(2).toString()
+        return values.type == "domicile" ? total : totalOrderPrice.toFixed(2).toString()
     }, [values.order, values.type])
-
-
-    const getServicePrice = useCallback(() => {
-        const totalOrderPrice = values.order.reduce((sum, order) => sum + parseFloat(order.total), 0)
-        const commission = totalOrderPrice * 0.015 + 0.25
-        return (commission + 2).toFixed(2).toString()
-    }, [values.order])
-
-    // --------------------------------------------------------------
-    // pay
-    // --------------------------------------------------------------
-
-    const [clientSecret, setClientSecret] = useState<string | null>(null)
-
-    useEffect(() => {
-        if (values.pay === "card" && clientSecret === null) {
-            createPaymentIntent(parseFloat(getTotal()))
-                .then(secret => setClientSecret(secret))
-                .catch(() => ToastDanger())
-        }
-    }, [values.pay, getTotal, clientSecret])
 
     // --------------------------------------------------------------
     // order
     // --------------------------------------------------------------
 
-    async function sendOrder() { await submitForm() }
-
-    // --------------------------------------------------------------
-    // code
-    // --------------------------------------------------------------
-
-    function StripeForm() {
-
-        const [sendPay, setSendPay] = useState(false)
-
-        const stripe = useStripe()
-        const elements = useElements()
-
-        const payOrder = async () => {
-            if (!stripe || !elements) return
-            setSendPay(true)
-            const result = await stripe.confirmPayment({ elements, redirect: "if_required" })
-
-            if (result.error) {
-                ToastDanger()
-                setSendPay(false)
-            }
-
-            else {
-                setFieldValue("pay_id", result.paymentIntent.id, false)
-                await new Promise(resolve => setTimeout(resolve, 10))
-                await submitForm()
-                setSendPay(false)
-            }
-        }
-
-        return (
-            <>
-                {stripe && elements && values.pay === 'card' && < PaymentElement />}
-                <div className="lg:col-span-2 flex max-lg:flex-col-reverse gap-4 justify-between">
-                    <Button
-                        disabled={isSubmitting || sendPay}
-                        className="custom-button custom-button-outline !text-lg"
-                        variant="outline"
-                        type="button"
-                        onClick={() => setProgress(progress - 1)}
-                    >
-                        Indietro
-                    </Button>
-                    <Button
-                        onClick={payOrder}
-                        type="button"
-                        disabled={!values.pay || isSubmitting || sendPay}
-                        className="custom-button !text-lg max-lg:grow bg-green-600 hover:bg-green-600/90"
-                    >
-                        {isSubmitting || sendPay && <Loader2 className="size-6 animate-spin" />}
-                        Paga ordine
-                    </Button>
-                </div>
-            </>
-        )
+    async function sendOrder() {
+        await submitForm()
+        // const url = await createSumupCheckout({ amount: 15.5, description: "Pizza Belvedere" })
+        // console.log(url)
     }
 
     // --------------------------------------------------------------
@@ -211,13 +123,19 @@ export default function Step5({ values, progress, setProgress, setFieldValue, su
                                         <span>Prezzo</span>
                                         <span>{parzial}€</span>
                                     </p>
+                                    {el.removed && el.removed.map((add, i) => (
+                                        <p key={i} className="text-sm flex items-center justify-between gap-2">
+                                            <span>{add.name}</span>
+                                            <span className="text-destructive">- {(parseFloat(el.type == "base" ? add.price : add.xl) * el.quantity).toFixed(2).toString()}€</span>
+                                        </p>
+                                    ))}
                                     {el.custom && el.custom.map((add, i) => (
                                         <p key={i} className="text-sm flex items-center justify-between gap-2">
                                             <span>{add.name}</span>
-                                            <span>{(parseFloat(el.type == "base" ? add.price : add.xl) * el.quantity).toFixed(2).toString()}€</span>
+                                            <span className="text-primary">+ {(parseFloat(el.type == "base" ? add.price : add.xl) * el.quantity).toFixed(2).toString()}€</span>
                                         </p>
                                     ))}
-                                    <p className="text-sm flex items-center justify-between gap-2">
+                                    <p className="text-sm flex items-center justify-between gap-2 font-bold">
                                         <span>Totale</span>
                                         <span>{el.total}€</span>
                                     </p>
@@ -228,16 +146,14 @@ export default function Step5({ values, progress, setProgress, setFieldValue, su
                     })}
                     <div className="space-y-2">
                         {values.type == "domicile" && (
-                            <p className="text-sm flex items-center justify-between gap-2">
-                                <span>Spedizione:</span>
-                                <span>{shipping}€</span>
-                            </p>
+                            <>
+                                <p className="text-sm flex items-center justify-between gap-2">
+                                    <span>Spedizione:</span>
+                                    <span>{shipping}€</span>
+                                </p>
+                                <Separator className="my-2" />
+                            </>
                         )}
-                        <p className="text-sm flex items-center justify-between gap-2">
-                            <span>Commissioni:</span>
-                            <span>{getServicePrice()}€</span>
-                        </p>
-                        <Separator className="my-2" />
                         <p className="text-lg font-bold flex items-center justify-between gap-2">
                             <span>Totale:</span>
                             <span>{getTotal()}€</span>
@@ -263,25 +179,18 @@ export default function Step5({ values, progress, setProgress, setFieldValue, su
                 </div>
             </div>
 
-            {values.pay === "card" && clientSecret && (
-                <div className="lg:col-span-2 space-y-4">
-                    <Elements options={{ clientSecret }} stripe={stripePromise}>
-                        <StripeForm />
-                    </Elements>
-                </div>
-            )}
+            <div className="lg:col-span-2 flex max-lg:flex-col-reverse gap-4 justify-between">
+                <Button
+                    className="custom-button custom-button-outline !text-lg"
+                    variant="outline"
+                    type="button"
+                    disabled={isSubmitting}
+                    onClick={() => setProgress(progress - 1)}
+                >
+                    Indietro
+                </Button>
 
-            {values.pay == "home" && (
-                <div className="lg:col-span-2 flex max-lg:flex-col-reverse gap-4 justify-between">
-                    <Button
-                        className="custom-button custom-button-outline !text-lg"
-                        variant="outline"
-                        type="button"
-                        disabled={isSubmitting}
-                        onClick={() => setProgress(progress - 1)}
-                    >
-                        Indietro
-                    </Button>
+                {values.pay == "home" && (
                     <Button
                         onClick={sendOrder}
                         type="button"
@@ -291,8 +200,21 @@ export default function Step5({ values, progress, setProgress, setFieldValue, su
                         {isSubmitting && <Loader2 className="size-6 animate-spin" />}
                         Conferma ordine
                     </Button>
-                </div>
-            )}
+                )}
+
+                {values.pay === "card" && (
+                    <Button
+                        onClick={sendOrder}
+                        type="button"
+                        disabled={!values.pay || isSubmitting}
+                        className="custom-button !text-lg max-lg:grow bg-green-600 hover:bg-green-600/90"
+                    >
+                        {isSubmitting && <Loader2 className="size-6 animate-spin" />}
+                        Paga ordine
+                    </Button>
+                )}
+            </div>
+
         </>
     )
 }

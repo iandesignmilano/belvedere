@@ -21,7 +21,7 @@ interface SearchIngredientsProps {
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export default function SearchIngredients({ searchData }: SearchIngredientsProps) {
+export default function SearchElements({ searchData }: SearchIngredientsProps) {
 
     const [search, setSearch] = useState("")
 
