@@ -9,30 +9,22 @@ import { Button } from "@/components/ui/button"
 // icons
 import { House, Bike } from "lucide-react"
 
+// interface
+import { OrderBase, AddressProps } from "@/actions/orders"
+
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // interface
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-type initialValue = {
-    type: string;
-    address: {
-        street?: string;
-        street_number?: string;
-        city?: string;
-        cap?: string;
-    }
-}
-
 interface Step1Props {
-    values: initialValue;
-    errors: FormikErrors<initialValue>;
-    touched: FormikTouched<initialValue>;
-    handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    handleBlur: (e: React.FocusEvent<HTMLInputElement>) => void;
-    setFieldValue: <K extends keyof initialValue>(field: K, value: initialValue[K], shouldValidate?: boolean) => void;
-
-    setProgress: React.Dispatch<React.SetStateAction<number>>;
-    progress: number;
+    values: OrderBase
+    errors: FormikErrors<OrderBase>
+    touched: FormikTouched<OrderBase>
+    handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+    handleBlur: (e: React.FocusEvent<HTMLInputElement>) => void
+    setFieldValue: <K extends keyof OrderBase>(field: K, value: OrderBase[K], shouldValidate?: boolean) => void
+    setProgress: React.Dispatch<React.SetStateAction<number>>
+    progress: number
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -40,6 +32,10 @@ interface Step1Props {
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 export default function Step2({ values, errors, touched, handleBlur, handleChange, setFieldValue, progress, setProgress }: Step1Props) {
+
+    const errorAddress = errors.address as FormikErrors<AddressProps> | undefined
+    const touchedAddress = touched.address as FormikTouched<AddressProps> | undefined
+
     return (
         <>
             <div className="text-lg grid grid-cols-2 gap-8 lg:col-span-2">
@@ -61,6 +57,7 @@ export default function Step2({ values, errors, touched, handleBlur, handleChang
 
             {values.type == "domicile" && (
                 <div className="lg:col-span-2 grid lg:grid-cols-3 gap-8">
+
                     <div className="space-y-2 lg:col-span-2">
                         <Label className="text-base pl-3">Indirizzo</Label>
                         <Input
@@ -69,9 +66,11 @@ export default function Step2({ values, errors, touched, handleBlur, handleChang
                             onChange={handleChange}
                             onBlur={handleBlur}
                             value={values?.address?.street}
-                            className={errors?.address?.street && touched?.address?.street ? "custom-form-error" : ""}
+                            className={errorAddress?.street && touchedAddress?.street ? "custom-form-error" : ""}
                         />
-                        {errors?.address?.street && touched?.address?.street && <p className="text-destructive text-sm pl-3">{errors.address.street}</p>}
+                        {errorAddress?.street && touchedAddress?.street && (
+                            <p className="text-destructive text-sm pl-3">{errorAddress.street}</p>
+                        )}
                     </div>
 
                     <div className="space-y-2">
@@ -83,9 +82,11 @@ export default function Step2({ values, errors, touched, handleBlur, handleChang
                             onChange={handleChange}
                             onBlur={handleBlur}
                             value={values?.address?.street_number}
-                            className={errors?.address?.street_number && touched?.address?.street_number ? "custom-form-error" : ""}
+                            className={errorAddress?.street_number && touchedAddress?.street_number ? "custom-form-error" : ""}
                         />
-                        {errors?.address?.street_number && touched?.address?.street_number && <p className="text-destructive text-sm pl-3">{errors.address.street_number}</p>}
+                        {errorAddress?.street_number && touchedAddress?.street_number && (
+                            <p className="text-destructive text-sm pl-3">{errorAddress.street_number}</p>
+                        )}
                     </div>
 
                     <div className="space-y-2 lg:col-span-2">
@@ -96,9 +97,11 @@ export default function Step2({ values, errors, touched, handleBlur, handleChang
                             onChange={handleChange}
                             onBlur={handleBlur}
                             value={values?.address?.city}
-                            className={errors?.address?.city && touched?.address?.city ? "custom-form-error" : ""}
+                            className={errorAddress?.city && touchedAddress?.city ? "custom-form-error" : ""}
                         />
-                        {errors?.address?.city && touched?.address?.city && <p className="text-destructive text-sm pl-3">{errors.address.city}</p>}
+                        {errorAddress?.city && touchedAddress?.city && (
+                            <p className="text-destructive text-sm pl-3">{errorAddress.city}</p>
+                        )}
                     </div>
 
                     <div className="space-y-2">
@@ -109,9 +112,11 @@ export default function Step2({ values, errors, touched, handleBlur, handleChang
                             onChange={handleChange}
                             onBlur={handleBlur}
                             value={values?.address?.cap}
-                            className={errors?.address?.street && touched?.address?.cap ? "custom-form-error" : ""}
+                            className={errorAddress?.cap && touchedAddress?.cap ? "custom-form-error" : ""}
                         />
-                        {errors?.address?.cap && touched?.address?.cap && <p className="text-destructive text-sm pl-3">{errors.address.cap}</p>}
+                        {errorAddress?.cap && touchedAddress?.cap && (
+                            <p className="text-destructive text-sm pl-3">{errorAddress.cap}</p>
+                        )}
                     </div>
                 </div>
             )}

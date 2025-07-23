@@ -1,12 +1,15 @@
 "use server"
 
+// lib
+import { generateCode } from "@/lib/code"
+
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // token
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 async function getSumupToken() {
-    const clientId = process.env.SUMUP_CLIENT_ID!
-    const clientSecret = process.env.SUMUP_CLIENT_SECRET!
+    const clientId = process.env.SUMUP_PUBLIC_ID!
+    const clientSecret = process.env.SUMUP_SECRET_ID!
 
     const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString("base64")
 
@@ -30,8 +33,12 @@ async function getSumupToken() {
 // pay
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export async function createSumupCheckout({ amount, description, }: { amount: number, description: string }) {
+export async function createSumupCheckout({ amount, description, }: { amount: string, description: string }) {
     const token = await getSumupToken()
+    const code = process.env.SUMUP_MERCHANT_CODE!
+
+    const gen_code = generateCode()
+    const transition_code = `order_${Date.now()}_${gen_code}`
 
     const res = await fetch("https://api.sumup.com/v0.1/checkouts", {
         method: "POST",
@@ -40,15 +47,36 @@ export async function createSumupCheckout({ amount, description, }: { amount: nu
             "Content-Type": "application/json",
         },
         body: JSON.stringify({
-            amount: amount.toFixed(2),
+            checkout_reference: transition_code,
+            amount: amount,
             currency: "EUR",
-            checkout_reference: `order_${Date.now()}`,
+            merchant_code: code,
             description,
-            return_url: "https://tuosito.com/success"
+            hosted_checkout: { enabled: true },
+            redirect_url: `http://localhost:3000/ordina`
         }),
     })
 
     const data = await res.json()
-    console.log(data)
-    return data.checkout_url as string
+    return {
+        url: data.hosted_checkout_url,
+        id: data.id
+    }
+}
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// pay status
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+export async function SumupCheckoutStatus(transition_code: string) {
+    const token = await getSumupToken()
+
+    const res = await fetch(`https://api.sumup.com/v0.1/checkouts/${transition_code}`, {
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}` }
+    })
+
+    const data = await res.json()
+    console.log(data.status)
+    return data.status
 }

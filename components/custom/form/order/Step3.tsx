@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 
 // formik
 import { FormikErrors, FormikTouched } from "formik"
@@ -14,39 +14,23 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 // action
 import { getBakingFree } from "@/actions/orders"
 
+// interface
+import { OrderBase } from "@/actions/orders"
+
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // interface
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-type initialValue = {
-    date: string | undefined
-    time: string
-    order: {
-        id: number
-        name: string
-        ingredients: string
-        type: string
-        price: string
-        quantity: number
-        custom: {
-            name: string
-            price: string
-            xl: string
-        }[]
-        total: string
-    }[]
-}
-
 interface Step3Props {
-    values: initialValue;
-    errors: FormikErrors<initialValue>;
-    touched: FormikTouched<initialValue>;
-    handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    handleBlur: (e: React.FocusEvent<HTMLInputElement>) => void;
-    setFieldValue: <K extends keyof initialValue>(field: K, value: initialValue[K], shouldValidate?: boolean) => void;
+    values: OrderBase
+    errors: FormikErrors<OrderBase>
+    touched: FormikTouched<OrderBase>
+    handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+    handleBlur: (e: React.FocusEvent<HTMLInputElement>) => void
+    setFieldValue: <K extends keyof OrderBase>(field: K, value: OrderBase[K], shouldValidate?: boolean) => void
 
-    setProgress: React.Dispatch<React.SetStateAction<number>>;
-    progress: number;
+    setProgress: React.Dispatch<React.SetStateAction<number>>
+    progress: number
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -59,15 +43,14 @@ export default function Step3({ values, errors, touched, setFieldValue, progress
     // data slot
     // --------------------------------------------------------------
 
-    // const [slots, setSlots] = useState<string[]>([])
+    const [slots, setSlots] = useState<string[]>([])
 
     useEffect(() => {
         async function getSlots() {
 
             const minimalOrder = values.order.map(item => ({ type: item.type, quantity: item.quantity }))
             const res = await getBakingFree({ date: values.date as string, orders: minimalOrder })
-            console.log(res)
-            // setSlots([])
+            setSlots(res)
             setFieldValue('time', "")
         }
 
@@ -86,7 +69,7 @@ export default function Step3({ values, errors, touched, setFieldValue, progress
                 <DatePicker
                     placeholder="Data prenotazione"
                     onChange={(date) => {
-                        setFieldValue('date', date)
+                        setFieldValue('date', date as string)
                         setFieldValue('time', "")
                     }}
                     value={values.date}
@@ -106,9 +89,7 @@ export default function Step3({ values, errors, touched, setFieldValue, progress
                         <SelectValue placeholder="Orari disponibili" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="19:30">19:30</SelectItem>
-                        <SelectItem value="20:00">20:00</SelectItem>
-                        <SelectItem value="20:30">20:30</SelectItem>
+                        {slots.map((el, i) => <SelectItem key={i} value={el}>{el}</SelectItem>)}
                     </SelectContent>
                 </Select>
                 {!values.date && <p className="text-sm pl-3 text-muted-foreground">Seleziona una data per vedere gli orari</p>}

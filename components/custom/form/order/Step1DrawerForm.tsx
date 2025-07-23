@@ -12,9 +12,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 // formik
 import { FormikErrors, FormikTouched, FormikHelpers } from "formik"
 
-// interface
-import { initialValue } from "./Step1"
-
 // icons
 import { Plus, Minus } from "lucide-react"
 
@@ -22,7 +19,8 @@ import { Plus, Minus } from "lucide-react"
 import { getIngredients } from "@/actions/ingredients"
 
 // interface
-import { SelectedData, Ingredient } from "./Step1"
+import { SelectedData } from "./Step1"
+import { OrderBase, Ingredient } from "@/actions/orders"
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // interface
@@ -31,10 +29,10 @@ import { SelectedData, Ingredient } from "./Step1"
 interface Step1DrawerFormProps {
     selected: SelectedData | Record<string, string | number>
     active: string
-    values: initialValue
-    errors: FormikErrors<initialValue>
-    touched: FormikTouched<initialValue>
-    setFieldValue: FormikHelpers<initialValue>["setFieldValue"]
+    values: OrderBase
+    errors: FormikErrors<OrderBase>
+    touched: FormikTouched<OrderBase>
+    setFieldValue: FormikHelpers<OrderBase>["setFieldValue"]
     setFieldTouched: (field: string, touched?: boolean, shouldValidate?: boolean) => void
 }
 
@@ -223,7 +221,7 @@ export default function Step1DrawerForm({ selected, values, active, errors, touc
                                 <AccordionItem value="item-1" className="border-slate-300">
                                     <AccordionTrigger className="text-base">
                                         <div className="flex items-center gap-2">
-                                            {data.removed.length > 0 && (
+                                            {data.removed && data.removed.length > 0 && (
                                                 <div className="bg-destructive text-white p-1 size-6 rounded-full flex items-center justify-center text-xs">
                                                     {data.removed.length}
                                                 </div>
@@ -258,7 +256,7 @@ export default function Step1DrawerForm({ selected, values, active, errors, touc
                             <AccordionItem value="item-2">
                                 <AccordionTrigger className="text-base">
                                     <div className="flex items-center gap-2">
-                                        {data.custom.length > 0 && (
+                                        {data.custom && data.custom.length > 0 && (
                                             <div className="bg-primary text-white p-1 size-6 rounded-full flex items-center justify-center text-xs">
                                                 {data.custom.length}
                                             </div>

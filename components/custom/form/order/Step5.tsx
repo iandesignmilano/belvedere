@@ -1,6 +1,9 @@
 "use client"
 
-import React, { useCallback } from "react"
+import React, { useCallback, useState } from "react"
+
+// next
+import Link from "next/link"
 
 // shad
 import { Button } from "@/components/ui/button"
@@ -10,47 +13,19 @@ import { Separator } from "@/components/ui/separator"
 import { CreditCard, House, Loader2 } from "lucide-react"
 
 // action
-// import { createSumupCheckout } from "@/actions/sumup"
+import { createSumupCheckout } from "@/actions/sumup"
 
 // interface
-import { Ingredient } from "./Step1"
+import { OrderBase } from "@/actions/orders"
+
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // interface
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-export type initialValue = {
-
-    type: string
-    address: {
-        street?: string
-        street_number?: string
-        city?: string
-        cap?: string
-    }
-
-    date: string | undefined
-    time: string
-
-    order: {
-        id: number
-        name: string
-        ingredients: Ingredient[]
-        type: string
-        price: string
-        quantity: number
-        removed: Ingredient[]
-        custom: Ingredient[]
-        total: string
-    }[];
-
-    pay: string
-    pay_id: string
-}
 
 interface Step5Props {
-    values: initialValue
-    setFieldValue: <K extends keyof initialValue>(field: K, value: initialValue[K], shouldValidate?: boolean) => void
+    values: OrderBase
+    setFieldValue: <K extends keyof OrderBase>(field: K, value: OrderBase[K], shouldValidate?: boolean) => void
     setProgress: React.Dispatch<React.SetStateAction<number>>
     progress: number
     isSubmitting: boolean
@@ -67,6 +42,8 @@ export default function Step5({ values, progress, setProgress, setFieldValue, su
 
     const shipping = "3.00"
 
+    const [payUrl, setPayUrl] = useState<string | null>(null)
+
     // --------------------------------------------------------------
     // total
     // --------------------------------------------------------------
@@ -78,13 +55,23 @@ export default function Step5({ values, progress, setProgress, setFieldValue, su
     }, [values.order, values.type])
 
     // --------------------------------------------------------------
+    // url pay
+    // --------------------------------------------------------------
+
+    async function getUrlPay() {
+        const total = getTotal()
+        const data = await createSumupCheckout({ amount: total, description: "Ordine online sul sito" })
+        setPayUrl(data.url)
+        localStorage.setItem("order", JSON.stringify(values))
+        localStorage.setItem("transition_code", data.id)
+    }
+
+    // --------------------------------------------------------------
     // order
     // --------------------------------------------------------------
 
     async function sendOrder() {
         await submitForm()
-        // const url = await createSumupCheckout({ amount: 15.5, description: "Pizza Belvedere" })
-        // console.log(url)
     }
 
     // --------------------------------------------------------------
@@ -100,7 +87,7 @@ export default function Step5({ values, progress, setProgress, setFieldValue, su
                     <p className="text-sm">Ora: {values.time}</p>
                     <Separator />
                     <p className="text-sm">Consegna: {type_name[values.type]}</p>
-                    {values.type == "domicile" && (
+                    {values.type == "domicile" && values.address && (
                         <>
                             <p className="text-sm">Indirizzo: {values.address.street}, {values.address.street_number}</p>
                             <p className="text-sm">Città: {values.address.city} ({values.address.cap})</p>
@@ -165,14 +152,20 @@ export default function Step5({ values, progress, setProgress, setFieldValue, su
             <div className="lg:col-span-2 grid grid-cols-2 gap-4">
                 <div
                     className={`custom-form-box ${values.pay == "home" && "custom-form-box-active"}`}
-                    onClick={() => setFieldValue("pay", "home")}
+                    onClick={() => {
+                        setPayUrl(null)
+                        setFieldValue("pay", "home")
+                    }}
                 >
                     <House className="size-8" />
                     <span>Alla consegna</span>
                 </div>
                 <div
                     className={`custom-form-box ${values.pay == "card" && "custom-form-box-active"}`}
-                    onClick={() => setFieldValue("pay", "card")}
+                    onClick={() => {
+                        getUrlPay()
+                        setFieldValue("pay", "card")
+                    }}
                 >
                     <CreditCard className="size-8" />
                     <span>Carta</span>
@@ -203,15 +196,27 @@ export default function Step5({ values, progress, setProgress, setFieldValue, su
                 )}
 
                 {values.pay === "card" && (
-                    <Button
-                        onClick={sendOrder}
-                        type="button"
-                        disabled={!values.pay || isSubmitting}
-                        className="custom-button !text-lg max-lg:grow bg-green-600 hover:bg-green-600/90"
-                    >
-                        {isSubmitting && <Loader2 className="size-6 animate-spin" />}
-                        Paga ordine
-                    </Button>
+                    <>
+                        {!payUrl && (
+                            <Button
+                                type="button"
+                                className="custom-button !text-lg max-lg:w-full bg-green-600 hover:bg-green-600/90"
+                            >
+                                <Loader2 className="size-6 animate-spin" />
+                            </Button>
+                        )}
+                        {payUrl && (
+                            <Link href={payUrl} className="max-lg:w-full block max-lg:grow">
+                                <Button
+                                    type="button"
+                                    disabled={!values.pay || isSubmitting}
+                                    className="custom-button !text-lg max-lg:w-full bg-green-600 hover:bg-green-600/90"
+                                >
+                                    Paga ordine
+                                </Button>
+                            </Link>
+                        )}
+                    </>
                 )}
             </div>
 

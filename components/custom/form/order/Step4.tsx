@@ -6,25 +6,21 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 
+// interface
+import { OrderBase } from "@/actions/orders"
+
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // interface
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-type initialValue = {
-    fullname: string;
-    email: string;
-    phone: string;
-}
-
 interface Step4Props {
-    values: initialValue;
-    errors: FormikErrors<initialValue>;
-    touched: FormikTouched<initialValue>;
-    handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    handleBlur: (e: React.FocusEvent<HTMLInputElement>) => void;
-
-    setProgress: React.Dispatch<React.SetStateAction<number>>;
-    progress: number;
+    values: OrderBase
+    errors: FormikErrors<OrderBase>
+    touched: FormikTouched<OrderBase>
+    handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+    handleBlur: (e: React.FocusEvent<HTMLInputElement>) => void
+    setProgress: React.Dispatch<React.SetStateAction<number>>
+    progress: number
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

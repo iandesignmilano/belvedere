@@ -25,42 +25,23 @@ import { getMenu } from "@/actions/menu"
 import { getDrinks } from "@/actions/drinks"
 import { getOutlines } from "@/actions/outlines"
 
+// interface
+import { OrderBase, Ingredient } from "@/actions/orders"
+
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // interface
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export interface Ingredient {
-    name: string
-    price: string
-    xl: string
-}
-
-export type initialValue = {
-    order: {
-        id: number
-        name: string
-        type_list: string
-        ingredients: Ingredient[]
-        type: string
-        price: string
-        quantity: number
-        removed: Ingredient[]
-        custom: Ingredient[]
-        total: string
-    }[]
-}
-
-type singleValue = initialValue["order"][number]
+type singleValue = OrderBase["order"][number]
 
 interface Step1Props {
-    values: initialValue;
-    errors: FormikErrors<initialValue>;
-    touched: FormikTouched<initialValue>;
-    setFieldValue: FormikHelpers<initialValue>["setFieldValue"];
-    setFieldTouched: (field: string, touched?: boolean, shouldValidate?: boolean) => void;
-
-    setProgress: React.Dispatch<React.SetStateAction<number>>;
-    progress: number;
+    values: OrderBase
+    errors: FormikErrors<OrderBase>
+    touched: FormikTouched<OrderBase>
+    setFieldValue: FormikHelpers<OrderBase>["setFieldValue"]
+    setFieldTouched: (field: string, touched?: boolean, shouldValidate?: boolean) => void
+    setProgress: React.Dispatch<React.SetStateAction<number>>
+    progress: number
 }
 
 export interface GetDataProps {
@@ -205,7 +186,7 @@ export default function Step1({ values, errors, touched, setFieldValue, setField
         setList(res)
 
         const menu = res.find((el) => el.name == data.name)
-        if (menu) setSelected({ ...menu, index: data.id })
+        if (menu) setSelected({ ...menu, index: data.id as number })
         setUpdated(true)
         setOpen(true)
     }
@@ -333,7 +314,7 @@ export default function Step1({ values, errors, touched, setFieldValue, setField
                                         type="button"
                                         className="max-lg:grow rounded-full"
                                         variant="destructive"
-                                        onClick={() => deleteSelected(el.id)}
+                                        onClick={() => deleteSelected(el.id as number)}
                                     >
                                         Elimina
                                     </Button>

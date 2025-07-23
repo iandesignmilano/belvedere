@@ -1,5 +1,7 @@
 "use client"
 
+import { useState, useEffect } from 'react'
+
 // formik + yup
 import { useFormik } from 'formik'
 import * as yup from "yup"
@@ -16,7 +18,8 @@ import Step5 from './Step5'
 import { ToastDanger } from '../../Toast'
 
 // action
-import { addOrderAction } from '@/actions/orders'
+import { addOrderAction, OrderBase } from '@/actions/orders'
+import { SumupCheckoutStatus } from '@/actions/sumup'
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // interface
@@ -25,6 +28,10 @@ import { addOrderAction } from '@/actions/orders'
 interface FormOrderProps {
     progress: number;
     setProgress: React.Dispatch<React.SetStateAction<number>>;
+}
+
+interface onSubmitProps extends FormOrderProps {
+    val: OrderBase
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -191,32 +198,69 @@ const formInitialValue = {
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// send
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+async function onSubmitFunction({ val, progress, setProgress }: onSubmitProps) {
+    try {
+        const res = await addOrderAction(val)
+        if (res.success) setProgress(progress + 1)
+        if (res.errors) ToastDanger()
+    } catch { ToastDanger() }
+}
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 export default function FormOrder({ progress, setProgress }: FormOrderProps) {
 
     // --------------------------------------------------------------
+    // values
+    // --------------------------------------------------------------
+
+    const [initialValues, setInitialValues] = useState<OrderBase>(formInitialValue)
+
+    useEffect(() => {
+
+        async function checkoutInfo() {
+
+            const code = localStorage.getItem('transition_code')
+            const order = localStorage.getItem('order')
+
+            if (code && order) {
+                const parsed = JSON.parse(order)
+                const status = await SumupCheckoutStatus(code)
+
+                // #TODO
+                if (status == "SUCCESS") {
+                    const values = { ...parsed, pay: "card", pay_id: code }
+                    await onSubmitFunction({ val: values, progress: 4, setProgress })
+                }
+
+                if (status == "PENDING" || status == "FAILED") {
+                    setInitialValues(parsed)
+                    localStorage.removeItem('order')
+                    localStorage.removeItem('transition_code')
+                    setProgress(4)
+                }
+            }
+        }
+
+        checkoutInfo()
+
+    }, [setProgress])
+
+    // --------------------------------------------------------------
     // form
     // --------------------------------------------------------------
 
     const formik = useFormik({
-        initialValues: formInitialValue,
+        enableReinitialize: true,
+        initialValues,
         validationSchema: stepSchemas[progress],
-        onSubmit: (values) => onSubmitFunction(values)
+        onSubmit: (values) => onSubmitFunction({ val: values, progress, setProgress })
     })
-
-    // --------------------------------------------------------------
-    // send
-    // --------------------------------------------------------------
-
-    async function onSubmitFunction(val: typeof formInitialValue) {
-        try {
-            const res = await addOrderAction(val)
-            if (res.success) setProgress(progress + 1)
-            if (res.errors) ToastDanger()
-        } catch { ToastDanger() }
-    }
 
     // --------------------------------------------------------------
     // form

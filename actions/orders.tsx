@@ -40,21 +40,21 @@ const transporter = nodemailer.createTransport(configOptions)
 // interface
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-type AddressProps = {
+export type AddressProps = {
     street: string
     street_number: string
     city: string
     cap: string
 }
 
-interface Ingredient {
+export interface Ingredient {
     name: string
     price: string
     xl: string
 }
 
 export type ItemsProps = {
-    id: string
+    id: string | number
     name: string
     ingredients: Ingredient[]
     type: string
@@ -66,7 +66,7 @@ export type ItemsProps = {
     total: string
 }
 
-type OrderBase = {
+export type OrderBase = {
     type: string
     address?: AddressProps
     date: string
@@ -96,16 +96,16 @@ interface BakingProps {
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// get orders
+// get
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export async function getOrders() {
+export async function getOrders(date?: string) {
 
-    const today = format(new Date(), "dd-MM-yyyy")
+    const dt = date ? date : format(new Date(), "dd-MM-yyyy")
 
     const orders = await db
         .collection("orders")
-        .find({ date: today })
+        .find({ date: dt })
         .sort({ time: 1 })
         .toArray()
 
@@ -128,57 +128,7 @@ export async function getOrders() {
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// get orders by date
-// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-export async function getOrdersByDate(date: string) {
-
-    const orders = await db
-        .collection("orders")
-        .find({ date: date })
-        .sort({ time: 1 })
-        .toArray()
-
-    const result = orders.map((el) => ({
-        _id: el._id.toString(),
-        code: el.code,
-        fullname: el.fullname,
-        phone: el.phone,
-        date: el.date,
-        time: el.time,
-        type: el.type,
-        address: el.address,
-        pay: el.pay,
-        order: el.order
-    }))
-
-    return result
-}
-
-// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// get table free
-// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-const FRACTION = { base: 1 / 6, xl: 1 / 4 }
-
-export async function getBakingFree({ date, orders }: BakingProps) {
-    if (!date) return []
-
-    // time
-    const now = new Date()
-    now.setMinutes(now.getMinutes() + 30)
-    const start = roundToNext10Min(now)
-
-    // ordini
-    const existingOrders = await db
-        .collection("orders")
-        .find({ date })
-        .sort({ time: 1 })
-        .toArray()
-}
-
-// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// add reservations
+// add
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 export async function addOrderAction(formData: AddOrderProps, user?: string) {
@@ -269,7 +219,7 @@ export async function addOrderAction(formData: AddOrderProps, user?: string) {
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// delete reservations
+// delete
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 export async function deleteOrderAction(id: string): Promise<{ success: boolean }> {
@@ -278,4 +228,72 @@ export async function deleteOrderAction(id: string): Promise<{ success: boolean 
     if (result.deletedCount === 0) return { success: false }
     revalidatePath("/private/ordini")
     return { success: true }
+}
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// free time
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+const UNITS_BASE = 2
+const UNITS_XL = 3
+const UNITS_TOTAL = 96 // 8 teglie
+
+// porzioni
+function getUnitsFromOrders(orders: BakingProps['orders']): number {
+    return orders.reduce((total, order) => {
+        if (order.type === 'base') return total + order.quantity * UNITS_BASE
+        if (order.type === 'abbondante') return total + order.quantity * UNITS_XL
+        return total
+    }, 0)
+}
+
+// slot tempo (19 - 21) ogni 10 min
+function generateSlots(): string[] {
+    const slots: string[] = []
+    let hour = 19
+    let minute = 0
+
+    for (let i = 0; i < 13; i++) {
+        slots.push(`${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`)
+        minute += 10
+        if (minute >= 60) {
+            hour++
+            minute = 0
+        }
+    }
+
+    return slots
+}
+
+export async function getBakingFree({ date, orders }: BakingProps) {
+
+    // unità e slot
+    const orderUnits = getUnitsFromOrders(orders)
+    const slots = generateSlots()
+
+    // tutti gli ordini
+    const allOrders = await db
+        .collection("orders")
+        .find({ date: date })
+        .sort({ time: 1 })
+        .toArray()
+
+    // suddido gli ordini negli slot
+    const existingOrdersBySlot: Record<string, BakingProps['orders']> = {}
+
+    for (const order of allOrders) {
+        if (!existingOrdersBySlot[order.time]) existingOrdersBySlot[order.time] = []
+        existingOrdersBySlot[order.time].push(...order.orders)
+    }
+
+    // slot disponibili
+    const availableSlots: string[] = []
+
+    for (const slot of slots) {
+        const existingOrders = existingOrdersBySlot[slot] || []
+        const usedUnits = getUnitsFromOrders(existingOrders)
+        if (usedUnits + orderUnits <= UNITS_TOTAL) availableSlots.push(slot)
+    }
+
+    return availableSlots
 }

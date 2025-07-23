@@ -86,6 +86,7 @@ export default function OrderList({ orders }: { orders: OrdersProps[] }) {
             <div className="grid lg:grid-cols-2 gap-4">
 
             </div>
+
             <Separator />
 
             {list.length == 0 && (
