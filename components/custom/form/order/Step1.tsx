@@ -50,6 +50,7 @@ export interface GetDataProps {
     ingredients?: Ingredient[]
     total_base?: string
     total_xl?: string
+    total_xxl?: string
 }
 
 export type SelectedData = GetDataProps & { index: number }
@@ -262,7 +263,7 @@ export default function Step1({ values, errors, touched, setFieldValue, setField
                                         <Separator className="bg-slate-300" />
                                         {el.removed.map((add, i) => {
 
-                                            const price = el.type == "base" ? add.price : add.xl
+                                            const price = el.type == "xl" ? add.xl : el.type == "xxl" ? add.xxl : add.price
                                             const total = (parseFloat(price) * el.quantity).toFixed(2).toString()
 
                                             return (
@@ -283,7 +284,7 @@ export default function Step1({ values, errors, touched, setFieldValue, setField
                                         <Separator className="bg-slate-300" />
                                         {el.custom.map((add, i) => {
 
-                                            const price = el.type == "base" ? add.price : add.xl
+                                            const price = el.type == "xl" ? add.xl : el.type == "xxl" ? add.xxl : add.price
                                             const total = (parseFloat(price) * el.quantity).toFixed(2).toString()
 
                                             return (

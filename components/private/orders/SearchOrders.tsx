@@ -9,7 +9,7 @@ import { Trash } from "lucide-react"
 // interface
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-interface SearchIngredientsProps {
+interface SearchOrdersProps {
     search: string
     setSearch: React.Dispatch<React.SetStateAction<string>>
 }
@@ -18,7 +18,7 @@ interface SearchIngredientsProps {
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export default function SearchElements({ search, setSearch }: SearchIngredientsProps) {
+export default function SearchOrders({ search, setSearch }: SearchOrdersProps) {
     return (
         <section className="flex items-center gap-2">
             <Input

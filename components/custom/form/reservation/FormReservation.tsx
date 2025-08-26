@@ -20,8 +20,9 @@ import { addReservationAction, AddProps } from '@/actions/reservations'
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 interface FormReservationProps {
-    progress: number;
-    setProgress: React.Dispatch<React.SetStateAction<number>>;
+    progress: number
+    setProgress: React.Dispatch<React.SetStateAction<number>>
+    gap: number
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -89,7 +90,7 @@ const formInitialValue = {
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export default function FormReservation({ progress, setProgress }: FormReservationProps) {
+export default function FormReservation({ progress, setProgress, gap }: FormReservationProps) {
 
     // --------------------------------------------------------------
     // form
@@ -119,7 +120,7 @@ export default function FormReservation({ progress, setProgress }: FormReservati
 
     const formStep = [
         <Step1 key="step-1" {...formik} progress={progress} setProgress={setProgress} />,
-        <Step2 key="step-2" {...formik} progress={progress} setProgress={setProgress} />
+        <Step2 key="step-2" {...formik} progress={progress} setProgress={setProgress} gap={gap} />
     ]
 
     // --------------------------------------------------------------

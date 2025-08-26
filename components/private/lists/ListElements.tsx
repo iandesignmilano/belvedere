@@ -24,6 +24,7 @@ type ListProps = {
     name: string
     price: string
     xl?: string
+    xxl?: string
     ingredients?: {
         name?: string
         price?: string
@@ -31,6 +32,7 @@ type ListProps = {
     }[]
     total_base?: string
     total_xl?: string
+    total_xxl?: string
 }
 
 interface ListElementsProps {
@@ -45,22 +47,27 @@ interface ListElementsProps {
 
 export default function ListElements({ elements, privileges, name }: ListElementsProps) {
 
-    // --------------------------------------------------------------
     // data
-    // --------------------------------------------------------------
-
     const [dataLists, setDataLists] = useState<ListProps[]>(elements)
-    useEffect(() => { setDataLists(elements) }, [elements])
 
-    // --------------------------------------------------------------
     // search
+    const [search, setSearch] = useState("")
+
+    // --------------------------------------------------------------
+    // update data
     // --------------------------------------------------------------
 
-    function searchData(value: string) {
-        if (!value) setDataLists(elements)
-        const filtered = elements.filter((el) => el.name.toLowerCase().includes(value.toLowerCase()))
-        setDataLists(filtered)
-    }
+    useEffect(() => {
+
+        let base = elements
+
+        if (search) {
+            const s = search.toLowerCase()
+            base = base.filter((el) => el.name.toLowerCase().includes(s))
+        }
+
+        setDataLists(base)
+    }, [elements, search])
 
     // --------------------------------------------------------------
     // code
@@ -70,7 +77,7 @@ export default function ListElements({ elements, privileges, name }: ListElement
         <>
             <div className="grid lg:grid-cols-2 gap-4">
                 <div>
-                    <SearchElements searchData={searchData} />
+                    <SearchElements search={search} setSearch={setSearch} />
                 </div>
                 {(privileges == "all" || privileges.includes("create")) && (
                     <div className="text-right">
@@ -95,12 +102,13 @@ export default function ListElements({ elements, privileges, name }: ListElement
                                 {el.ingredients.map(ing => ing.name).join(", ")}
                             </p>
                         )}
-                        <h4 className="text-foreground flex items-center gap-4">
+                        <h4 className="text-foreground flex items-center gap-2 text-sm">
                             <span>
-                                {name == "ingrediente" || name == "pizza" ? "Base: " : "Prezzo: "}
+                                <strong>{name == "ingrediente" || name == "pizza" ? "Base: " : "Prezzo: "}</strong>
                                 {name == "pizza" ? el.total_base : el.price}€
                             </span>
-                            {el.xl && <span className="text-primary font-bold">XL: {name == "pizza" ? el.total_xl : el.xl}€</span>}
+                            {el.xl && <span><strong>XL</strong>: {name == "pizza" ? el.total_xl : el.xl}€</span>}
+                            {el.xxl && <span><strong>XXL</strong>: {name == "pizza" ? el.total_xxl : el.xxl}€</span>}
                         </h4>
 
                         {(privileges == "all" || privileges.includes('update') || privileges.includes('delete')) && (

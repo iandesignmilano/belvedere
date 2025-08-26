@@ -92,7 +92,7 @@ export default function Step1DrawerForm({ selected, values, active, errors, touc
 
         let updatedList = []
         if (isChecked) updatedList = list.filter(item => item.name !== el.name)
-        else updatedList = [...list, { name: el.name, price: el.price, xl: el.xl }]
+        else updatedList = [...list, { name: el.name, price: el.price, xl: el.xl, xxl: el.xxl }]
 
         setFieldValue(`order[${index}].${listType}`, updatedList)
 
@@ -101,12 +101,12 @@ export default function Step1DrawerForm({ selected, values, active, errors, touc
         const removed = listType === "removed" ? updatedList : data.removed || []
 
         const extrasSum = extras.reduce((sum, item) => {
-            const price = data.type === "base" ? item.price : item.xl
+            const price = data.type === "xl" ? item.xl : data.type === "xxl" ? item.xxl : item.price
             return sum + parseFloat(price || "0")
         }, 0)
 
         const removedSum = removed.reduce((sum, item) => {
-            const price = data.type === "base" ? item.price : item.xl
+            const price = data.type === "xl" ? item.xl : data.type === "xxl" ? item.xxl : item.price
             return sum + parseFloat(price || "0")
         }, 0)
 
@@ -126,13 +126,13 @@ export default function Step1DrawerForm({ selected, values, active, errors, touc
 
         // extra
         const extrasSum = extras.reduce((sum, item) => {
-            const price = type == "base" ? item.price : item.xl
+            const price = type === "xl" ? item.xl : type === "xxl" ? item.xxl : item.price
             return sum + parseFloat(price)
         }, 0)
 
         // removed
         const removedSum = removed.reduce((sum, item) => {
-            const removedPrice = type === "base" ? item.price : item.xl
+            const removedPrice = type === "xl" ? item.xl : type === "xxl" ? item.xxl : item.price
             return sum + parseFloat(removedPrice)
         }, 0)
 
@@ -154,7 +154,7 @@ export default function Step1DrawerForm({ selected, values, active, errors, touc
                             value={data.type}
                             onValueChange={(value) => {
                                 setFieldValue(`order[${index}].type`, value)
-                                const price = value == "base" ? selected.total_base as string : selected.total_xl as string
+                                const price = value == "xl" ? selected.total_xl as string : value == "xxl" ? selected.total_xxl as string : selected.total_base as string
                                 setFieldValue(`order[${index}].price`, price)
                                 getTotal(price, data.quantity, value)
                             }}
@@ -168,6 +168,7 @@ export default function Step1DrawerForm({ selected, values, active, errors, touc
                             <SelectContent>
                                 <SelectItem value="base">Base</SelectItem>
                                 <SelectItem value="xl">XL</SelectItem>
+                                <SelectItem value="xxl">XXL</SelectItem>
                             </SelectContent>
                             {errors_element?.type && touched_element?.type && <p className="text-destructive text-sm pl-3">{errors_element.type}</p>}
                         </Select>
@@ -243,7 +244,9 @@ export default function Step1DrawerForm({ selected, values, active, errors, touc
                                                     />
                                                     <div className="flex items-center gap-4 justify-between w-full">
                                                         <span>{el.name}</span>
-                                                        <span className="text-destructive">- {data.type == "base" ? el.price : el.xl}€</span>
+                                                        <span className="text-destructive">
+                                                            - {data.type == "xl" ? el.xl : data.type == "xxl" ? el.xxl : el.price}€
+                                                        </span>
                                                     </div>
                                                 </div>
                                                 {(selected.ingredients as Ingredient[]).length !== (i + 1) && <Separator className="bg-slate-300" />}
@@ -278,7 +281,9 @@ export default function Step1DrawerForm({ selected, values, active, errors, touc
                                                 />
                                                 <div className="flex items-center gap-4 justify-between w-full">
                                                     <span>{el.name}</span>
-                                                    <span className="text-primary">+ {data.type == "base" ? el.price : el.xl}€</span>
+                                                    <span className="text-primary">
+                                                        + {data.type == "xl" ? el.xl : data.type == "xxl" ? el.xxl : el.price}€
+                                                    </span>
                                                 </div>
                                             </div>
                                             {allIngredients.length !== (i + 1) && <Separator className="bg-slate-300" />}

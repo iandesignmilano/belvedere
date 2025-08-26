@@ -52,7 +52,7 @@ export async function loginAction(formData: loginActionProps) {
     if (!check) return { errors: "Si è verificato un errore, riprova più tardi" }
 
     await createSession(user._id.toString())
-    redirect("/private")
+    redirect("/private/ordini")
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

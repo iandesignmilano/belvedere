@@ -29,17 +29,23 @@ type ActionProps = {
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// get ingredients
+// get
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 export async function getIngredients() {
     const ingredients = await db.collection("ingredients").find().toArray()
-    const result = ingredients.map((el) => ({ _id: el._id.toString(), name: el.name, price: el.price, xl: el.xl }))
+    const result = ingredients.map((el) => ({
+        _id: el._id.toString(),
+        name: el.name,
+        price: el.price,
+        xl: el.xl,
+        xxl: el.xxl
+    }))
     return result
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// get ingredient
+// detail
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 export async function getIngredient(id: string) {
@@ -50,7 +56,7 @@ export async function getIngredient(id: string) {
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// add ingredient
+// add
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 export async function addIngredientAction(formData: ActionProps) {
@@ -58,11 +64,13 @@ export async function addIngredientAction(formData: ActionProps) {
     // data
     const { name, price } = formData
     const xl = parseFloat(price) + 1.5
+    const xxl = parseFloat(price) * 2
 
     const ingredient = {
         name,
         price: parseFloat(price).toFixed(2).toString(),
-        xl: xl.toFixed(2).toString()
+        xl: xl.toFixed(2).toString(),
+        xxl: xxl.toFixed(2).toString()
     }
 
     try {
@@ -75,7 +83,7 @@ export async function addIngredientAction(formData: ActionProps) {
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// update ingredient
+// update
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 export async function updateIngredientAction(id: string, formData: ActionProps) {
@@ -85,11 +93,13 @@ export async function updateIngredientAction(id: string, formData: ActionProps) 
     // data
     const { name, price } = formData
     const xl = parseFloat(price) + 1.5
+    const xxl = parseFloat(price) * 2
 
     const ingredient = {
         name,
         price: parseFloat(price).toFixed(2).toString(),
-        xl: xl.toFixed(2).toString()
+        xl: xl.toFixed(2).toString(),
+        xxl: xxl.toFixed(2).toString()
     }
 
     try {
@@ -134,7 +144,7 @@ export async function updateIngredientAction(id: string, formData: ActionProps) 
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// delete ingredient
+// delete
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 export async function deleteIngredientAction(id: string): Promise<{ success: boolean }> {

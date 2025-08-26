@@ -18,7 +18,6 @@ import { format } from "date-fns"
 // lib
 import { verifyAuth } from '@/lib/session'
 import { generateCode } from '@/lib/code'
-import { roundToNext10Min } from '@/lib/time'
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // conf
@@ -45,12 +44,14 @@ export type AddressProps = {
     street_number: string
     city: string
     cap: string
+    zone: string
 }
 
 export interface Ingredient {
     name: string
     price: string
     xl: string
+    xxl: string
 }
 
 export type ItemsProps = {
@@ -89,6 +90,7 @@ type AddOrderProps = OrderBase
 
 interface BakingProps {
     date: string
+    type: string
     orders: {
         type: string
         quantity: number
@@ -236,40 +238,64 @@ export async function deleteOrderAction(id: string): Promise<{ success: boolean 
 
 const UNITS_BASE = 2
 const UNITS_XL = 3
-const UNITS_TOTAL = 96 // 8 teglie
+const UNITS_XXL = 4
 
 // porzioni
 function getUnitsFromOrders(orders: BakingProps['orders']): number {
     return orders.reduce((total, order) => {
         if (order.type === 'base') return total + order.quantity * UNITS_BASE
-        if (order.type === 'abbondante') return total + order.quantity * UNITS_XL
+        if (order.type === 'xl') return total + order.quantity * UNITS_XL
+        if (order.type === 'xxl') return total + order.quantity * UNITS_XXL
         return total
     }, 0)
 }
 
-// slot tempo (19 - 21) ogni 10 min
-function generateSlots(): string[] {
+// slot tempo (19 - 21) ogni 10 min o range se domicilio
+function generateSlots(type: string): string[] {
     const slots: string[] = []
     let hour = 19
     let minute = 0
 
-    for (let i = 0; i < 13; i++) {
-        slots.push(`${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`)
-        minute += 10
-        if (minute >= 60) {
-            hour++
-            minute = 0
+    if (type === "take_away") {
+        while (hour < 22 || (hour === 22 && minute === 0)) {
+            slots.push(`${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`)
+            minute += 10
+
+            if (minute >= 60) {
+                hour++
+                minute = 0
+            }
+        }
+    } else if (type === "domicile") {
+        while (hour < 22) {
+            const start = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
+            const endMinutes = minute + 15
+            const endHour = hour + Math.floor(endMinutes / 60)
+            const endMinute = endMinutes % 60
+            const end = `${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')}`
+            slots.push(`${start} - ${end}`)
+
+            minute += 30
+            if (minute >= 60) {
+                hour++
+                minute = 0
+            }
         }
     }
+
 
     return slots
 }
 
-export async function getBakingFree({ date, orders }: BakingProps) {
+export async function getBakingFree({ date, type, orders }: BakingProps) {
+
+    // teglie
+    const settings = await db.collection("settings").findOne()
+    const UNITS_TOTAL = (settings?.teglie ?? 6) * 12
 
     // unità e slot
     const orderUnits = getUnitsFromOrders(orders)
-    const slots = generateSlots()
+    const slots = generateSlots(type)
 
     // tutti gli ordini
     const allOrders = await db
@@ -282,15 +308,17 @@ export async function getBakingFree({ date, orders }: BakingProps) {
     const existingOrdersBySlot: Record<string, BakingProps['orders']> = {}
 
     for (const order of allOrders) {
-        if (!existingOrdersBySlot[order.time]) existingOrdersBySlot[order.time] = []
-        existingOrdersBySlot[order.time].push(...order.orders)
+        const startTime = order.time.includes(" - ") ? order.time.split(" - ")[0] : order.time
+        if (!existingOrdersBySlot[startTime]) existingOrdersBySlot[startTime] = []
+        if (Array.isArray(order.orders)) existingOrdersBySlot[startTime].push(...order.orders)
     }
 
     // slot disponibili
     const availableSlots: string[] = []
 
     for (const slot of slots) {
-        const existingOrders = existingOrdersBySlot[slot] || []
+        const slotStart = slot.includes(" - ") ? slot.split(" - ")[0] : slot
+        const existingOrders = existingOrdersBySlot[slotStart] || []
         const usedUnits = getUnitsFromOrders(existingOrders)
         if (usedUnits + orderUnits <= UNITS_TOTAL) availableSlots.push(slot)
     }

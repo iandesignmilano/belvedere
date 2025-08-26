@@ -42,7 +42,7 @@ export default function Step5({ values, progress, setProgress, setFieldValue, su
 
     const shipping = "3.00"
 
-    const [payUrl, setPayUrl] = useState<string | null>(null)
+    const [payData, setPayData] = useState<{ url: string | null, id: string | null }>({ url: null, id: null })
 
     // --------------------------------------------------------------
     // total
@@ -61,9 +61,12 @@ export default function Step5({ values, progress, setProgress, setFieldValue, su
     async function getUrlPay() {
         const total = getTotal()
         const data = await createSumupCheckout({ amount: total, description: "Ordine online sul sito" })
-        setPayUrl(data.url)
+        setPayData({ url: data.url, id: data.id })
+    }
+
+    function createStorage() {
         localStorage.setItem("order", JSON.stringify(values))
-        localStorage.setItem("transition_code", data.id)
+        localStorage.setItem("transition_code", payData.id as string)
     }
 
     // --------------------------------------------------------------
@@ -71,6 +74,8 @@ export default function Step5({ values, progress, setProgress, setFieldValue, su
     // --------------------------------------------------------------
 
     async function sendOrder() {
+        localStorage.removeItem('order')
+        localStorage.removeItem('transition_code')
         await submitForm()
     }
 
@@ -113,13 +118,17 @@ export default function Step5({ values, progress, setProgress, setFieldValue, su
                                     {el.removed && el.removed.map((add, i) => (
                                         <p key={i} className="text-sm flex items-center justify-between gap-2">
                                             <span>{add.name}</span>
-                                            <span className="text-destructive">- {(parseFloat(el.type == "base" ? add.price : add.xl) * el.quantity).toFixed(2).toString()}€</span>
+                                            <span className="text-destructive">
+                                                - {(parseFloat(el.type == "xl" ? add.xl : el.type == "xxl" ? add.xxl : add.price) * el.quantity).toFixed(2).toString()}€
+                                            </span>
                                         </p>
                                     ))}
                                     {el.custom && el.custom.map((add, i) => (
                                         <p key={i} className="text-sm flex items-center justify-between gap-2">
                                             <span>{add.name}</span>
-                                            <span className="text-primary">+ {(parseFloat(el.type == "base" ? add.price : add.xl) * el.quantity).toFixed(2).toString()}€</span>
+                                            <span className="text-primary">
+                                                + {(parseFloat(el.type == "xl" ? add.xl : el.type == "xxl" ? add.xxl : add.price) * el.quantity).toFixed(2).toString()}€
+                                            </span>
                                         </p>
                                     ))}
                                     <p className="text-sm flex items-center justify-between gap-2 font-bold">
@@ -153,7 +162,7 @@ export default function Step5({ values, progress, setProgress, setFieldValue, su
                 <div
                     className={`custom-form-box ${values.pay == "home" && "custom-form-box-active"}`}
                     onClick={() => {
-                        setPayUrl(null)
+                        setPayData({ url: null, id: null })
                         setFieldValue("pay", "home")
                     }}
                 >
@@ -197,7 +206,7 @@ export default function Step5({ values, progress, setProgress, setFieldValue, su
 
                 {values.pay === "card" && (
                     <>
-                        {!payUrl && (
+                        {!payData?.url && (
                             <Button
                                 type="button"
                                 className="custom-button !text-lg max-lg:w-full bg-green-600 hover:bg-green-600/90"
@@ -205,8 +214,8 @@ export default function Step5({ values, progress, setProgress, setFieldValue, su
                                 <Loader2 className="size-6 animate-spin" />
                             </Button>
                         )}
-                        {payUrl && (
-                            <Link href={payUrl} className="max-lg:w-full block max-lg:grow">
+                        {payData.url && (
+                            <Link href={payData.url} onClick={createStorage} className="max-lg:w-full block max-lg:grow">
                                 <Button
                                     type="button"
                                     disabled={!values.pay || isSubmitting}

@@ -18,6 +18,9 @@ import { Loader2, Plus, Minus } from "lucide-react"
 // actions
 import { getTableFree } from "@/actions/reservations"
 
+// date
+import { parse, addMinutes, format } from 'date-fns'
+
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // interface
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -39,6 +42,7 @@ interface Step2Props {
 
     setProgress: React.Dispatch<React.SetStateAction<number>>
     progress: number
+    gap: number
 }
 
 
@@ -46,7 +50,7 @@ interface Step2Props {
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export default function Step2({ values, errors, touched, isValid, isSubmitting, setFieldValue, progress, setProgress, setFieldTouched }: Step2Props) {
+export default function Step2({ values, errors, touched, isValid, isSubmitting, setFieldValue, progress, setProgress, setFieldTouched, gap }: Step2Props) {
 
     // --------------------------------------------------------------
     // data slot
@@ -66,9 +70,20 @@ export default function Step2({ values, errors, touched, isValid, isSubmitting, 
     }, [values.date, values.people, setFieldValue])
 
     // --------------------------------------------------------------
-    // code
+    // data + 90 min
     // --------------------------------------------------------------
 
+    function endDate(time: string) {
+        const timeFormatted = time.replace('.', ':')
+        const parsedTime = parse(timeFormatted, "HH:mm", new Date(1970, 0, 1))
+        const endTime = addMinutes(parsedTime, gap)
+        const formattedEndTime = format(endTime, "HH:mm")
+        return formattedEndTime
+    }
+
+    // --------------------------------------------------------------
+    // code
+    // --------------------------------------------------------------
 
     return (
         <>
@@ -86,9 +101,9 @@ export default function Step2({ values, errors, touched, isValid, isSubmitting, 
                         <Button
                             type="button"
                             className="h-full !px-4 !text-lg"
-                            disabled={values.people == 15}
+                            disabled={values.people == 10}
                             onClick={() => {
-                                const qta = values.people == 15 ? 15 : values.people + 1
+                                const qta = values.people == 10 ? 10 : values.people + 1
                                 setFieldValue("people", qta)
                                 setFieldTouched("people", true, true)
                             }}
@@ -109,7 +124,7 @@ export default function Step2({ values, errors, touched, isValid, isSubmitting, 
                         </Button>
                     </div>
                 </div>
-                <p className="text-sm pl-3 text-muted-foreground">Oltre 15 persone chiama il numero: 02 241 65 947</p>
+                <p className="text-sm pl-3 text-muted-foreground">Oltre 10 persone chiama il numero: 02 241 65 947</p>
                 {errors.people && touched.people && <p className="text-red-500 text-sm pl-3">{errors.people}</p>}
             </div>
 
@@ -139,9 +154,11 @@ export default function Step2({ values, errors, touched, isValid, isSubmitting, 
                     </SelectTrigger>
                     <SelectContent>
                         {slots.map((el, i) => <SelectItem key={i} value={el}>{el}</SelectItem>)}
+                        {slots.length == 0 && <SelectItem disabled value="empty">Nessun tavolo disponibile</SelectItem>}
                     </SelectContent>
                 </Select>
                 {!values.date && <p className="text-sm pl-3 text-muted-foreground">Seleziona una data per vedere gli orari</p>}
+                {values.time && <p className="text-sm pl-3 text-muted-foreground">Orario di fine: {endDate(values.time)}</p>}
                 {errors.time && touched.time && <p className="text-red-500 text-sm pl-3">{errors.time}</p>}
             </div>
 

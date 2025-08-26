@@ -38,38 +38,38 @@ export default function ReservationsList({ reservations, user, privileges }: Res
 
     const { updateData, setUpdateData } = useSocket()
 
-    // --------------------------------------------------------------
-    // data
-    // --------------------------------------------------------------
-
-    const [list, setList] = useState<ReservationsProps[]>(reservations)
-    useEffect(() => { setList(reservations) }, [reservations])
-
-    // --------------------------------------------------------------
     // search
-    // --------------------------------------------------------------
+    const [search, setSearch] = useState("")
 
-    function searchData(value: string) {
-        if (!value) setList(reservations)
-        const filtered = reservations.filter((el) => {
-            const search = value.toLowerCase()
-            return (el.code.toLowerCase().includes(search) || el.fullname.toLowerCase().includes(search) || el.phone.toLowerCase().includes(search))
-        })
-        setList(filtered)
-    }
+    // date
+    const [dt, setDt] = useState("")
+
+    // data
+    const [list, setList] = useState<ReservationsProps[]>(reservations)
 
     // --------------------------------------------------------------
-    // search by date
+    // update data
     // --------------------------------------------------------------
 
-    async function searchDataByDate(value: string) {
-        if (!value) {
-            setList(reservations)
-            return
+    useEffect(() => {
+        const run = async () => {
+            let base = reservations
+
+            if (dt) {
+                const data = await getReservations(dt)
+                base = data
+            }
+
+            if (search) {
+                const s = search.toLowerCase()
+                base = base.filter(el => el.code.toLowerCase().includes(s) || el.fullname.toLowerCase().includes(s))
+            }
+
+            setList(base)
         }
-        const data = await getReservations(value)
-        setList(data)
-    }
+
+        run()
+    }, [reservations, dt, search])
 
     // --------------------------------------------------------------
     // web socket
@@ -92,36 +92,21 @@ export default function ReservationsList({ reservations, user, privileges }: Res
 
     return (
         <>
-            <div className="grid lg:grid-cols-2 gap-4">
+            <div className="grid lg:grid-cols-3 gap-4">
                 <div>
-                    <DateReservations searchDataByDate={searchDataByDate} />
+                    <DateReservations dt={dt} setDt={setDt} />
                 </div>
                 <div>
-                    <SearchReservations searchData={searchData} />
-                </div>
-                <div className="lg:col-span-2">
-                    <Separator />
+                    <SearchReservations search={search} setSearch={setSearch} />
                 </div>
                 {(privileges == "all" || privileges.includes("create")) && (
-                    <>
-                        <div className="text-right lg:col-span-2 xl:col-span-1">
-                            <FormReservationPrivate type="create" user={user}>
-                                <Button
-                                    className="custom-button custom-button-outline w-full"
-                                    variant="outline"
-                                >
-                                    Aggiungi prenotazione online
-                                </Button>
-                            </FormReservationPrivate>
-                        </div>
-                        <div className="text-right lg:col-span-2 xl:col-span-1">
-                            <FormReservationPrivate type="create" user={user} office>
-                                <Button className="custom-button w-full">
-                                    Aggiungi prenotazione in sede
-                                </Button>
-                            </FormReservationPrivate>
-                        </div>
-                    </>
+                    <div>
+                        <FormReservationPrivate type="create" user={user}>
+                            <Button className="custom-button w-full">
+                                Aggiungi prenotazione
+                            </Button>
+                        </FormReservationPrivate>
+                    </div>
                 )}
             </div>
             <Separator />
@@ -148,7 +133,7 @@ export default function ReservationsList({ reservations, user, privileges }: Res
                         {(privileges == "all" || privileges.includes('update') || privileges.includes('delete')) && (
                             <div className="flex items-center gap-4 justify-end">
                                 {(privileges == "all" || privileges.includes('update')) && (
-                                    <FormReservationPrivate type="update" id={el._id} office={el.type == "office" ? true : false}>
+                                    <FormReservationPrivate type="update" id={el._id}>
                                         <Button size="icon" className="rounded-full">
                                             <Pen />
                                         </Button>

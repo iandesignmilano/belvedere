@@ -4,6 +4,8 @@ import React, { useState, useEffect } from "react"
 
 // components
 import OrderPdf from "./OrderPdf"
+import SearchOrders from "./SearchOrders"
+import DateOrders from "./DateOrders"
 
 // shad
 import { Badge } from "@/components/ui/badge"
@@ -22,11 +24,33 @@ import { House, Bike, Pizza, BadgeEuro, Calendar, Phone, Printer, Banknote, Cred
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export default function OrderList({ orders }: { orders: OrdersProps[] }) {
+export default function OrderList({ orders, privileges }: { orders: OrdersProps[], privileges: string }) {
 
+    // socket
     const { updateData, setUpdateData } = useSocket()
 
+    // shipping cost
     const shipping = "9.00"
+
+    // search
+    const [search, setSearch] = useState("")
+
+    // date
+    const [dt, setDt] = useState("")
+
+    // data
+    const [list, setList] = useState<OrdersProps[]>(orders)
+
+    // --------------------------------------------------------------
+    // colors
+    // --------------------------------------------------------------
+
+    const colors = {
+        Z1: "bg-orange-500",
+        Z2: "bg-emerald-500",
+        Z3: "bg-indigo-500",
+        Z4: "bg-rose-500"
+    }
 
     // --------------------------------------------------------------
     // totals
@@ -44,23 +68,28 @@ export default function OrderList({ orders }: { orders: OrdersProps[] }) {
     }
 
     // --------------------------------------------------------------
-    // data
+    // update data
     // --------------------------------------------------------------
 
-    const [list, setList] = useState<OrdersProps[]>(orders)
-    useEffect(() => { setList(orders) }, [orders])
+    useEffect(() => {
+        const run = async () => {
+            let base = orders
 
-    // --------------------------------------------------------------
-    // pdf height
-    // --------------------------------------------------------------
+            if (dt) {
+                const data = await getOrders(dt)
+                base = data
+            }
 
-    const getHeight = (len: number): number => {
-        let h = 20
-        if (len == 5) h = 30
-        if (len > 7) h = 40
-        if (len > 9) h = 50
-        return h
-    }
+            if (search) {
+                const s = search.toLowerCase()
+                base = base.filter(el => el.code.toLowerCase().includes(s) || el.fullname.toLowerCase().includes(s))
+            }
+
+            setList(base)
+        }
+
+        run()
+    }, [orders, dt, search])
 
     // --------------------------------------------------------------
     // web socket
@@ -83,8 +112,20 @@ export default function OrderList({ orders }: { orders: OrdersProps[] }) {
 
     return (
         <>
-            <div className="grid lg:grid-cols-2 gap-4">
-
+            <div className="grid lg:grid-cols-3 gap-4">
+                <div>
+                    <DateOrders dt={dt} setDt={setDt} />
+                </div>
+                <div>
+                    <SearchOrders search={search} setSearch={setSearch} />
+                </div>
+                {(privileges == "all" || privileges.includes("create")) && (
+                    <div>
+                        <Button className="custom-button w-full" disabled>
+                            Aggiungi ordine
+                        </Button>
+                    </div>
+                )}
             </div>
 
             <Separator />
@@ -105,8 +146,18 @@ export default function OrderList({ orders }: { orders: OrdersProps[] }) {
                                 <Accordion type="single" collapsible>
                                     <AccordionItem value={`item-${i}`}>
                                         <AccordionTrigger className="bg-slate-100 flex items-center justify-between p-4 rounded-b-none cursor-pointer hover:no-underline">
-                                            <span className="flex items-center gap-2">
-                                                <Badge>{el.time}</Badge>
+                                            <span className="flex max-lg:flex-col lg:items-center gap-2">
+                                                <div className="flex items-center gap-2">
+                                                    <Badge>
+                                                        {el.type == "domicile" ? <Bike /> : <House />}
+                                                        {el.time}
+                                                    </Badge>
+                                                    {el.type == "domicile" && (
+                                                        <Badge className={colors[el.address?.zone as keyof typeof colors]}>
+                                                            {el.address?.zone}
+                                                        </Badge>
+                                                    )}
+                                                </div>
                                                 <h2 className="text-sm text-primary">({el.code}) {el.fullname}</h2>
                                             </span>
                                         </AccordionTrigger>
@@ -191,14 +242,18 @@ export default function OrderList({ orders }: { orders: OrdersProps[] }) {
                                                                 {order.removed && order.removed?.length > 0 && order.removed.map((custom, i) => (
                                                                     <p key={i} className="flex items-center gap-2 justify-between text-sm text-destructive">
                                                                         <span>{custom.name}</span>
-                                                                        <span> - {(parseFloat(order.type == "base" ? custom.price : custom.xl) * order.quantity).toFixed(2).toString()}€</span>
+                                                                        <span>
+                                                                            - {(parseFloat(order.type == "xl" ? custom.xl : order.type == "xxl" ? custom.xxl : custom.price) * order.quantity).toFixed(2).toString()}€
+                                                                        </span>
                                                                     </p>
                                                                 ))}
 
                                                                 {order.custom && order.custom?.length > 0 && order.custom.map((custom, i) => (
                                                                     <p key={i} className="flex items-center gap-2 justify-between text-sm text-primary">
                                                                         <span>{custom.name}</span>
-                                                                        <span> + {(parseFloat(order.type == "base" ? custom.price : custom.xl) * order.quantity).toFixed(2).toString()}€</span>
+                                                                        <span>
+                                                                            + {(parseFloat(order.type == "xl" ? custom.xl : order.type == "xxl" ? custom.xxl : custom.price) * order.quantity).toFixed(2).toString()}€
+                                                                        </span>
                                                                     </p>
                                                                 ))}
 
@@ -246,14 +301,14 @@ export default function OrderList({ orders }: { orders: OrdersProps[] }) {
                                     <Separator className="mb-4" />
                                     <div className="flex gap-2 items-center justify-end">
                                         <Button
-                                            onClick={() => OrderPdf(el, getHeight(el.order.length), "kitchen")}
+                                            onClick={() => OrderPdf(el, "kitchen")}
                                             className="rounded-full max-lg:grow custom-button !text-sm"
                                         >
                                             <Printer />
                                         </Button>
                                         {el.type == "domicile" && (
                                             <Button
-                                                onClick={() => OrderPdf(el, getHeight(el.order.length), "delivery")}
+                                                onClick={() => OrderPdf(el, "delivery")}
                                                 className="bg-cyan-600 hover:bg-cyan-600/90 rounded-full max-lg:grow custom-button !text-sm"
                                             >
                                                 <Bike />

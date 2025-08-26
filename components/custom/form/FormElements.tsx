@@ -43,6 +43,7 @@ type Ingredient = {
     name: string
     price: string
     xl: string
+    xxl: string
 }
 
 type BaseData = {
@@ -352,7 +353,7 @@ export default function FormElements({ children, type, id, name }: FormIngredien
 
                                                         const updated = isChecked
                                                             ? current.filter(item => item.name !== el.name)
-                                                            : [...current, { name: el.name, price: el.price, xl: el.xl }]
+                                                            : [...current, { name: el.name, price: el.price, xl: el.xl, xxl: el.xxl }]
 
                                                         setFieldValue("ingredients", updated)
                                                     }}
@@ -366,6 +367,7 @@ export default function FormElements({ children, type, id, name }: FormIngredien
                                                         <span className='flex items-center gap-2'>
                                                             <span>Base: {el.price}</span>
                                                             <span className='text-primary'>XL: {el.xl}</span>
+                                                            <span className='text-primary'>XXL: {el.xxl}</span>
                                                         </span>
                                                     </div>
                                                 </div>

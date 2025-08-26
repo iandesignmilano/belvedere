@@ -10,14 +10,15 @@ import * as yup from "yup"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
 import { DatePicker } from "@/components/ui/datePicker"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter, DrawerClose } from "@/components/ui/drawer"
 
 // date
 import { format } from "date-fns"
-import { roundToNext15Minutes } from '@/lib/time'
 
 // components
 import { ToastSuccess, ToastDanger } from "@/components/custom/Toast"
@@ -26,7 +27,7 @@ import { ToastSuccess, ToastDanger } from "@/components/custom/Toast"
 import { Loader2, Plus, Minus } from "lucide-react"
 
 // actions
-import { getReservation, addReservationAction, updateReservationAction, getTableFree } from '@/actions/reservations'
+import { getReservation, addReservationAction, updateReservationAction, getTableFree, getAvailableTables } from '@/actions/reservations'
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // interface
@@ -36,7 +37,6 @@ interface FormReservationPrivateProps {
     children: React.ReactNode
     type: "create" | "update"
     id?: string
-    office?: boolean
     user?: string
 }
 
@@ -61,64 +61,42 @@ const text = {
 // form 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-const getSchema = (office: boolean) => (
-    yup.object({
+const schema = yup.object({
 
-        fullname: yup.string().required("Nome e Cognome sono obbligatori"),
+    fullname: yup.string().required("Nome e Cognome sono obbligatori"),
 
-        email: yup.string().when([], {
-            is: () => office,
-            then: (schema) => schema.optional(),
-            otherwise: (schema) => schema.required("L'email è obbligatoria").email("Inserisci un'email valida"),
-        }),
+    people: yup
+        .number()
+        .required("Indica il numero di persone")
+        .positive("Minimo 1 persona")
+        .min(1, "Minimo 1 persona"),
 
-        phone: yup.string().when([], {
-            is: () => office,
-            then: (schema) => schema.optional(),
-            otherwise: (schema) => schema.required("Il numero di telefono è obbligatorio").matches(/^\+?[0-9\s\-]{7,15}$/, "Inserisci un numero di telefono valido"),
-        }),
+    date: yup.string().required("La data è obbligatoria"),
 
-        people: yup
-            .number()
-            .required("Indica il numero di persone")
-            .positive("Minimo 1 persona")
-            .min(1, "Minimo 1 persona"),
+    table: yup.string().optional(),
 
-        date: yup.string().required("La data è obbligatoria"),
+    type: yup.string().optional(),
 
-        time: yup.string().required("L'orario è obbligatorio")
-    })
-)
+    time: yup.string().required("L'orario è obbligatorio")
+})
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export default function FormReservationPrivate({ children, type, id, user, office = false }: FormReservationPrivateProps) {
-
-    const schema = getSchema(office)
+export default function FormReservationPrivate({ children, type, id, user }: FormReservationPrivateProps) {
 
     const [open, setOpen] = useState(false)
 
+    const [resType, setResType] = useState("sede")
+
     const [slots, setSlots] = useState<string[]>([])
 
-    const [initial, setInitial] = useState({ fullname: "", email: "", phone: "", people: 2, date: "", time: "" })
-
-    // --------------------------------------------------------------
-    // date and time now (if office)
-    // --------------------------------------------------------------
+    const [freeTables, setFreeTables] = useState<string[]>([])
 
     const date_now = format(new Date(), "dd-MM-yyyy")
-    const time = roundToNext15Minutes(new Date())
-    const time_now = format(time, "HH:mm")
 
-    // --------------------------------------------------------------
-    // data office
-    // --------------------------------------------------------------
-
-    useEffect(() => {
-        if (office) setInitial({ fullname: "prenotazione al tavolo", email: "", phone: "", people: 2, date: date_now, time: time_now })
-    }, [office, date_now, time_now])
+    const [initial, setInitial] = useState({ fullname: "", email: "", phone: "", people: 2, date: date_now, time: "", table: "" })
 
     // --------------------------------------------------------------
     // data (update)
@@ -128,14 +106,18 @@ export default function FormReservationPrivate({ children, type, id, user, offic
         async function getData() {
             if (id) {
                 const data = await getReservation(id)
-                if (data) setInitial({
-                    fullname: data.fullname,
-                    email: data.email,
-                    phone: data.phone,
-                    people: data.people,
-                    date: data.date,
-                    time: data.time
-                })
+                if (data) {
+                    setInitial({
+                        fullname: data.fullname,
+                        email: data.email,
+                        phone: data.phone,
+                        people: data.people,
+                        date: data.date,
+                        time: data.time,
+                        table: data.table
+                    })
+                    setResType(data.type)
+                }
                 else ToastDanger()
             }
         }
@@ -161,7 +143,7 @@ export default function FormReservationPrivate({ children, type, id, user, offic
 
     async function onSubmitFunction(val: typeof initial) {
         try {
-            const res = type == 'create' ? await addReservationAction(val, user, office) : await updateReservationAction(id as string, val)
+            const res = type == 'create' ? await addReservationAction(val, user, "sede") : await updateReservationAction(id as string, val)
             if (res.success) {
                 setOpen(false)
                 handleReset(initial)
@@ -175,23 +157,41 @@ export default function FormReservationPrivate({ children, type, id, user, offic
     // reset on close
     // --------------------------------------------------------------
 
-    useEffect(() => handleReset(initial), [open, handleReset, initial])
+    useEffect(() => {
+        handleReset(initial)
+        setSlots([])
+        setFreeTables([])
+    }, [open, handleReset, initial])
 
     // --------------------------------------------------------------
-    // data slot
+    // slots
     // --------------------------------------------------------------
 
     useEffect(() => {
 
         async function getSlots() {
             const id_reservation = id ? id : undefined
-            const res = await getTableFree(values.date as string, values.people, id_reservation)
+            const res = await getTableFree(values.date, values.people, id_reservation, resType)
             setSlots(res)
         }
 
         if (values.date && values.people) getSlots()
-    }, [values.date, values.people, setFieldValue, open, office, id])
+    }, [values.date, values.people, setFieldValue, open, id, resType])
 
+    // --------------------------------------------------------------
+    // free table
+    // --------------------------------------------------------------
+
+    useEffect(() => {
+
+        async function getSlots() {
+            const id_reservation = id ? id : undefined
+            const res = await getAvailableTables(values.date, values.time, id_reservation)
+            setFreeTables(res)
+        }
+
+        if (values.date && values.people && values.time) getSlots()
+    }, [values.date, values.people, values.time, setFieldValue, open, id])
 
     // --------------------------------------------------------------
     // code
@@ -211,54 +211,36 @@ export default function FormReservationPrivate({ children, type, id, user, offic
                         <DrawerDescription className="text-base">{text[type].description}</DrawerDescription>
                     </DrawerHeader>
                     <Separator />
-                    <section className="p-4 overflow-y-auto flex-1 grid lg:grid-cols-3 gap-4">
+                    <section className="p-4 overflow-y-auto flex-1 grid lg:grid-cols-2 gap-4">
 
-                        {(type !== "update" && !office) && (
-                            <>
-                                <div className="space-y-2">
-                                    <Label className="text-base pl-3">Nome e Cognome</Label>
-                                    <Input
-                                        name="fullname"
-                                        placeholder="Nome e Cognome"
-                                        onChange={handleChange}
-                                        onBlur={handleBlur}
-                                        value={values.fullname}
-                                        className={errors.fullname && touched.fullname ? "custom-form-error" : ""}
-                                    />
-                                    {errors.fullname && touched.fullname && <p className="text-destructive text-sm pl-3">{errors.fullname}</p>}
-                                </div>
+                        <div className="space-y-2">
+                            <Label className="text-base pl-3">Nome e Cognome</Label>
+                            <Input
+                                name="fullname"
+                                placeholder="Nome e Cognome"
+                                onChange={handleChange}
+                                onBlur={handleBlur}
+                                value={values.fullname}
+                                className={errors.fullname && touched.fullname ? "custom-form-error" : ""}
+                            />
+                            {errors.fullname && touched.fullname && <p className="text-destructive text-sm pl-3">{errors.fullname}</p>}
+                        </div>
 
-                                <div className="space-y-2">
-                                    <Label className="text-base pl-3">Email</Label>
-                                    <Input
-                                        name="email"
-                                        placeholder="Email"
-                                        type="email"
-                                        onChange={handleChange}
-                                        onBlur={handleBlur}
-                                        value={values.email}
-                                        className={errors.email && touched.email ? "custom-form-error" : ""}
-                                    />
-                                    {errors.email && touched.email && <p className="text-red-500 text-sm pl-3">{errors.email}</p>}
-                                </div>
+                        <div className="space-y-2">
+                            <Label className="text-base pl-3">Telefono</Label>
+                            <Input
+                                name="phone"
+                                placeholder="Telefono"
+                                type="tel"
+                                onChange={handleChange}
+                                onBlur={handleBlur}
+                                value={values.phone}
+                                className={errors.phone && touched.phone ? "custom-form-error" : ""}
+                            />
+                            {errors.phone && touched.phone && <p className="text-red-500 text-sm pl-3">{errors.phone}</p>}
+                        </div>
 
-                                <div className="space-y-2">
-                                    <Label className="text-base pl-3">Telefono</Label>
-                                    <Input
-                                        name="phone"
-                                        placeholder="Telefono"
-                                        type="tel"
-                                        onChange={handleChange}
-                                        onBlur={handleBlur}
-                                        value={values.phone}
-                                        className={errors.phone && touched.phone ? "custom-form-error" : ""}
-                                    />
-                                    {errors.phone && touched.phone && <p className="text-red-500 text-sm pl-3">{errors.phone}</p>}
-                                </div>
-                            </>
-                        )}
-
-                        <div className={`space-y-2 ${office && "lg:col-span-3"}`}>
+                        <div className="space-y-2 lg:col-span-2">
                             <Label className="text-base pl-3">Numero di persone</Label>
                             <div className="flex gap-2">
                                 <Input
@@ -277,6 +259,7 @@ export default function FormReservationPrivate({ children, type, id, user, offic
                                             setFieldValue("people", qta)
                                             setFieldTouched("people", true, true)
                                             setFieldValue('time', "")
+                                            setFieldValue('table', "")
                                         }}
                                     >
                                         <Plus className="size-4" />
@@ -290,6 +273,7 @@ export default function FormReservationPrivate({ children, type, id, user, offic
                                             setFieldValue("people", qta)
                                             setFieldTouched("people", true, true)
                                             setFieldValue('time', "")
+                                            setFieldValue('table', "")
                                         }}
                                     >
                                         <Minus className="size-4" />
@@ -306,6 +290,7 @@ export default function FormReservationPrivate({ children, type, id, user, offic
                                 onChange={(date) => {
                                     setFieldValue('date', date)
                                     setFieldValue('time', "")
+                                    setFieldValue('table', "")
                                 }}
                                 value={values.date}
                                 className={errors.date && touched.date ? "custom-form-error" : ""}
@@ -320,17 +305,58 @@ export default function FormReservationPrivate({ children, type, id, user, offic
                                 onValueChange={(value) => setFieldValue('time', value)}
                                 disabled={!values.date}
                             >
-                                <SelectTrigger className="w-full">
+                                <SelectTrigger className="w-full" disabled={!values.date}>
                                     <SelectValue placeholder="Orari disponibili" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {slots.map((el, i) => <SelectItem key={i} value={el}>{el}</SelectItem>)}
+                                    {slots.length == 0 && <SelectItem disabled value="empty">Nessun tavolo disponibile</SelectItem>}
                                 </SelectContent>
                             </Select>
-                            {!values.date && <p className="text-sm pl-3 text-muted-foreground">Seleziona una data per vedere gli orari</p>}
                             {type == "update" && <p className="text-sm pl-3 text-muted-foreground">Orario prenotazione attuale: {initial.time}</p>}
                             {errors.time && touched.time && <p className="text-red-500 text-sm pl-3">{errors.time}</p>}
                         </div>
+
+                        {resType !== "online" && (
+                            <div className="space-y-2 lg:col-span-2">
+                                <Label className="text-base pl-3">Tavoli disponibili</Label>
+                                <Accordion type="single" collapsible className="bg-input rounded-xl px-4">
+                                    <AccordionItem value="tavoli" className="border-slate-300">
+                                        <AccordionTrigger className='text-base'>
+                                            {values.table ? values.table : "Tavoli disponibili"}
+                                        </AccordionTrigger>
+                                        <AccordionContent className="space-y-4">
+                                            <Separator className="bg-slate-300" />
+                                            {freeTables.map((el, i) => {
+                                                const isChecked = values.table?.split(" + ").includes(el)
+
+                                                const handleChange = () => {
+                                                    let selected = values.table ? values.table.split(" + ") : []
+                                                    if (selected.includes(el)) selected = selected.filter(t => t !== el)
+                                                    else selected.push(el)
+                                                    setFieldValue("table", selected.join(" + "))
+                                                }
+
+                                                return (
+                                                    <div key={i} className='flex items-center gap-4'>
+                                                        <Checkbox
+                                                            checked={isChecked}
+                                                            onCheckedChange={handleChange}
+                                                            className='size-5 bg-white border-white'
+                                                        />
+                                                        {el}
+                                                    </div>
+                                                )
+                                            })}
+                                            {freeTables.length == 0 && <p>Nessun tavolo disponibile</p>}
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                </Accordion>
+                                {!values.time && <p className="text-sm pl-3 text-muted-foreground">Seleziona un orario per vedere i tavoli disponibili</p>}
+                                {type == "update" && <p className="text-sm pl-3 text-muted-foreground">Tavoli occupati: {initial.table}</p>}
+                                {errors.table && touched.table && <p className="text-red-500 text-sm pl-3">{errors.table}</p>}
+                            </div>
+                        )}
 
                     </section>
                     <Separator />

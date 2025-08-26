@@ -53,8 +53,8 @@ export default function MotionMenu({ menu }: MotionMenuProps) {
                 whileInView={anim.whileInView(0, isMobile)}
                 className="flex justify-end gap-8"
             >
-                <p className="w-[49.69px] lg:w-[55.17px] text-center font-title text-lg lg:text-2xl">BASE</p>
-                <p className="w-[49.69px] lg:w-[55.17px] text-center text-primary font-title text-lg lg:text-2xl">XL</p>
+                <p className="min-w-[70px] text-center font-title text-lg lg:text-xl">BASE</p>
+                <p className="min-w-[70px] text-center text-primary font-title text-lg lg:text-xl">XL</p>
             </motion.div>
 
             {menu.map((el, i) => (
@@ -67,8 +67,8 @@ export default function MotionMenu({ menu }: MotionMenuProps) {
                         <h4 className="text-lg lg:text-2xl text-primary">{el.name}</h4>
                         <div className="border border-dashed border-slate-300 grow" />
                         <div className="text-lg lg:text-xl flex items-center gap-8">
-                            <p>{el.total_base}€</p>
-                            <p className="text-primary">{el.total_xl}€</p>
+                            <p className="min-w-[70px] flex items-center justify-end">{el.total_base}€</p>
+                            <p className="text-primary min-w-[70px] flex items-center justify-end">{el.total_xl}€</p>
                         </div>
                     </div>
                     <p className="text-slate-600 max-lg:text-sm">

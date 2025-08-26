@@ -31,6 +31,12 @@ const text = Inter({
 export const metadata: Metadata = {
     title: "Pizzeria Belvedere Senago – Pizza al Trancio Alta e Soffice dal 1996",
     description: "Scopri la Pizzeria Belvedere a Senago: dal 1996, specialità in pizza al trancio alta e soffice, realizzata con ingredienti selezionati e impasto fresco ogni giorno. Servizio cordiale, porzioni generose e consegna a domicilio da martedì a venerdì.",
+
+    icons: {
+        icon: "/favicon/favicon.ico",
+        apple: "/favicon/apple-touch-icon.png",
+        shortcut: "/favicon/favicon-192.png",
+    },
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

@@ -1,30 +1,24 @@
-"use client"
-
-import { useState } from "react"
-
 // shad
 import { Button } from "../../ui/button"
 import { DatePicker } from "@/components/ui/datePicker"
 
 // icons
-import { Search, Trash } from "lucide-react"
+import { Trash } from "lucide-react"
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // interface
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 interface DateReservationsProps {
-    searchDataByDate: (val: string) => void
+    dt: string
+    setDt: React.Dispatch<React.SetStateAction<string>>
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export default function DateReservations({ searchDataByDate }: DateReservationsProps) {
-
-    const [dt, setDt] = useState("")
-
+export default function DateReservations({ dt, setDt }: DateReservationsProps) {
     return (
         <section className="flex items-center gap-2">
             <DatePicker
@@ -33,23 +27,12 @@ export default function DateReservations({ searchDataByDate }: DateReservationsP
                 value={dt}
                 onChange={(date) => setDt(date || "")}
             />
-            <Button
-                size="icon"
-                disabled={!dt}
-                className="rounded-full cursor-pointer"
-                onClick={() => searchDataByDate(dt)}
-            >
-                <Search />
-            </Button>
             {dt.length > 0 && (
                 <Button
                     variant="destructive"
                     size="icon"
                     className="rounded-full cursor-pointer"
-                    onClick={() => {
-                        setDt("")
-                        searchDataByDate("")
-                    }}
+                    onClick={() => setDt("")}
                 >
                     <Trash />
                 </Button>

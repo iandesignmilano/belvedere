@@ -48,8 +48,8 @@ const dataMenu = {
 export function Menu({ data }: MenuProps) {
     return (
         <section className="custom-section bg-food">
-            <div className="custom-container flex flex-col-reverse xl:grid xl:grid-cols-2 gap-16">
-                <div className="flex flex-col gap-8">
+            <div className="custom-container flex flex-col-reverse xl:grid xl:grid-cols-3 gap-16">
+                <div className="flex flex-col gap-8 xl:col-span-2">
                     <MotionText title={dataMenu.title} text={dataMenu.text} />
                     <MotionMenu menu={data} />
                     <MotionText button={dataMenu.button} />

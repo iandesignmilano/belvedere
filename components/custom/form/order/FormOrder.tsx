@@ -66,7 +66,7 @@ const stepSchemas = [
 
                     type: yup
                         .string()
-                        .oneOf(["base", "xl"], "Porzione non valida")
+                        .oneOf(["base", "xl", "xxl"], "Porzione non valida")
                         .required("Porzione obbligatoria"),
 
                     price: yup.string().optional(),
@@ -138,6 +138,10 @@ const stepSchemas = [
                     then: (schema) => schema.required("Il CAP è obbligatorio"),
                     otherwise: (schema) => schema.notRequired(),
                 }),
+
+            zone: yup
+                .string()
+                .optional()
         })
 
     }),
@@ -181,7 +185,8 @@ const formInitialValue = {
         street: "",
         street_number: "",
         city: "",
-        cap: ""
+        cap: "",
+        zone: ""
     },
 
     // step 3

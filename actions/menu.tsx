@@ -17,11 +17,13 @@ export type IngredientsProps = {
     _id: string
     name: string
     price: string
-    xl: string,
+    xl: string
+    xxl: string
     ingredients: {
         name: string
         price: string
         xl: string
+        xxl: string
     }[]
 }
 
@@ -29,11 +31,13 @@ export type IngredientsProps = {
 type ActionProps = {
     name: string
     price: string
-    xl?: string,
+    xl?: string
+    xxl?: string
     ingredients?: {
         name: string
         price: string
         xl: string
+        xxl: string
     }[]
 }
 
@@ -52,9 +56,11 @@ export async function getMenu(totals?: number) {
         name: el.name,
         price: el.price,
         xl: el.xl,
+        xxl: el.xxl,
         ingredients: el.ingredients,
         total_base: el.total_base,
-        total_xl: el.total_xl
+        total_xl: el.total_xl,
+        total_xxl: el.total_xxl
     }))
     return result
 }
@@ -84,14 +90,23 @@ export async function addItemMenuAction(formData: ActionProps) {
 
     const basePrice = parseFloat(formData.price) || 0
     const baseXL = parseFloat(formData.xl ?? "0") || 0
+    const baseXXL = parseFloat(formData.price ?? "0") * 2 || 0
 
     const ingredientsPrice = (formData.ingredients ?? []).reduce((sum, ing) => { return sum + (parseFloat(ing.price) || 0) }, 0)
     const ingredientsXL = (formData.ingredients ?? []).reduce((sum, ing) => { return sum + (parseFloat(ing.xl) || 0) }, 0)
+    const ingredientsXXL = (formData.ingredients ?? []).reduce((sum, ing) => { return sum + (parseFloat(ing.xxl) || 0) }, 0)
 
     const totalPrice = basePrice + ingredientsPrice
     const totalXL = baseXL + ingredientsXL
+    const totalXXL = baseXXL + ingredientsXXL
 
-    const data = { ...formData, total_base: totalPrice.toFixed(2), total_xl: totalXL.toFixed(2) }
+    const data = {
+        ...formData,
+        total_base: totalPrice.toFixed(2),
+        total_xl: totalXL.toFixed(2),
+        xxl: baseXXL.toFixed(2),
+        total_xxl: totalXXL.toFixed(2)
+    }
 
     try {
         await db.collection("menu").insertOne(data)
@@ -114,12 +129,15 @@ export async function updateItemMenuAction(id: string, formData: ActionProps) {
 
     const basePrice = parseFloat(formData.price) || 0
     const baseXL = parseFloat(formData.xl ?? "0") || 0
+    const baseXXL = parseFloat(formData.price ?? "0") * 2 || 0
 
     const ingredientsPrice = (formData.ingredients ?? []).reduce((sum, ing) => { return sum + (parseFloat(ing.price) || 0) }, 0)
     const ingredientsXL = (formData.ingredients ?? []).reduce((sum, ing) => { return sum + (parseFloat(ing.xl) || 0) }, 0)
+    const ingredientsXXL = (formData.ingredients ?? []).reduce((sum, ing) => { return sum + (parseFloat(ing.xxl) || 0) }, 0)
 
     const totalPrice = basePrice + ingredientsPrice
     const totalXL = baseXL + ingredientsXL
+    const totalXXL = baseXXL + ingredientsXXL
 
     const data = {
         name: formData.name,
@@ -127,7 +145,9 @@ export async function updateItemMenuAction(id: string, formData: ActionProps) {
         ingredients: formData.ingredients,
         xl: formData.xl,
         total_base: totalPrice.toFixed(2),
-        total_xl: totalXL.toFixed(2)
+        total_xl: totalXL.toFixed(2),
+        xxl: baseXXL.toFixed(2),
+        total_xxl: totalXXL.toFixed(2)
     }
 
     try {

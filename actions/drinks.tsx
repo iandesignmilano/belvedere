@@ -25,7 +25,7 @@ type ActionProps = {
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// get ingredients
+// get
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 export async function getDrinks() {
@@ -35,7 +35,7 @@ export async function getDrinks() {
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// get ingredient
+// detail
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 export async function getDrink(id: string) {
@@ -46,12 +46,11 @@ export async function getDrink(id: string) {
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// add ingredient
+// add
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 export async function addDrinkAction(formData: ActionProps) {
 
-    // data
     const { name, price } = formData
 
     const drink = {
@@ -69,14 +68,13 @@ export async function addDrinkAction(formData: ActionProps) {
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// update ingredient
+// update
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 export async function updateDrinkAction(id: string, formData: ActionProps) {
 
     const _id = new ObjectId(id)
 
-    // data
     const { name, price } = formData
 
     const drink = {
@@ -94,7 +92,7 @@ export async function updateDrinkAction(id: string, formData: ActionProps) {
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// delete ingredient
+// delete
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 export async function deleteDrinkAction(id: string): Promise<{ success: boolean }> {

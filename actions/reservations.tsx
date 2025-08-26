@@ -60,12 +60,16 @@ export type AddProps = {
     people: number
     date: string
     time: string
+    table?: string
 }
 
 type UpdateProps = {
+    fullname: string
+    phone: string
     people: number
     date: string
     time: string
+    table: string
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -115,7 +119,8 @@ export async function getReservation(id: string) {
         date: reservation.date,
         time: reservation.time,
         code: reservation.code,
-        type: reservation.type
+        type: reservation.type,
+        table: reservation.table
     }
 }
 
@@ -123,7 +128,7 @@ export async function getReservation(id: string) {
 // add
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export async function addReservationAction(formData: AddProps, user?: string, office?: boolean) {
+export async function addReservationAction(formData: AddProps, user?: string, office?: string) {
 
     // today
     const today = format(new Date(), "dd-MM-yyyy")
@@ -134,12 +139,14 @@ export async function addReservationAction(formData: AddProps, user?: string, of
     if (auth.user?.id && user && auth.user.id == user) check_user = true
 
     // data
-    const { fullname, email, phone, people, date, time } = formData
+    const { fullname, email, phone, people, date, time, table } = formData
     const code = generateCode()
-    const type = office ? "office" : "online"
+    const type = office ?? "online"
 
     // table
-    const selectedTable = await getTableResevation({ date, time, people })
+    let selectedTable = ""
+    if (table) selectedTable = table
+    else selectedTable = await getTableResevation({ date, time, people })
     if (!selectedTable) return { errors: "Non ci sono tavoli disponibili per l'orario selezionato." }
 
     // data
@@ -194,13 +201,15 @@ export async function updateReservationAction(id: string, formData: UpdateProps)
     const _id = new ObjectId(id)
 
     // data
-    const { people, date, time } = formData
+    const { people, date, time, table, fullname, phone } = formData
 
     // table
-    const selectedTable = await getTableResevation({ date, time, people })
+    let selectedTable = ""
+    if (table) selectedTable = table
+    else selectedTable = await getTableResevation({ date, time, people })
     if (!selectedTable) return { errors: "Non ci sono tavoli disponibili per l'orario selezionato." }
 
-    const reservation = { people, date, time, table: selectedTable }
+    const reservation = { people, date, time, fullname, phone, table: selectedTable }
 
     try {
         await db.collection("reservations").updateOne({ _id: _id }, { $set: reservation })
@@ -223,10 +232,10 @@ export async function deleteReservationAction(id: string): Promise<{ success: bo
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// free
+// free time list
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export async function getTableFree(date: string, people: number, reservationId?: string) {
+export async function getTableFree(date: string, people: number, reservationId?: string, resType?: string) {
 
     // prenotazioni
     const reservations = await db.collection("reservations").find({ date }).sort({ time: 1 }).toArray()
@@ -237,7 +246,7 @@ export async function getTableFree(date: string, people: number, reservationId?:
         .find({ $or: [{ people: { $gte: people } }, { max: { $gte: people } }] })
         .toArray()
 
-    if (!tables.length) return []
+    if (!tables.length && resType == "online") return []
 
     // orari
     const parsedDate = parse(date, "dd-MM-yyyy", new Date())
@@ -246,37 +255,48 @@ export async function getTableFree(date: string, people: number, reservationId?:
     let slots: string[] = []
     if (weekend || parsedDate.getDay() === 5) slots = ["19:00", "19:15", "20:30", "20:45"]
     else {
-        for (let h = 19; h <= 21; h++) {
+        for (let h = 19; h <= 22; h++) {
             for (let m = 0; m < 60; m += 15) {
-                if (h === 21 && m > 0) break
+                if (h === 22 && m > 0) break
                 slots.push(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`)
             }
         }
     }
 
+    if (!tables.length && resType == "sede") return slots
+
     // permanenza
     const slotTimes = slots.map(s => ({ raw: s, date: parse(s, "HH:mm", parsedDate), }))
-    const DURATION_MINUTES = 90
+
+    // gap (in minuti)
+    const settings = await db.collection("settings").findOne()
+    const DURATION_MINUTES = settings?.prenotazione ? settings.prenotazione * 60 : 90
 
     // slot liberi
     const availableSlots: string[] = []
+
     for (const { raw: slot, date: slotDate } of slotTimes) {
 
-        // tavoli occupati
+        // calcolo fine slot
+        const slotEnd = addMinutes(slotDate, DURATION_MINUTES)
+
+        // tavoli occupati che si sovrappongono con l'intervallo [slotDate, slotEnd)
         const reservedTables = reservations
             .filter(r => {
                 if (reservationId && r._id.toString() === reservationId) return false
-                const resTime = parse(r.time, "HH:mm", parsedDate)
-                const resEnd = addMinutes(resTime, DURATION_MINUTES)
-                return slotDate >= resTime && slotDate < resEnd
+                const resStart = parse(r.time, "HH:mm", parsedDate)
+                const resEnd = addMinutes(resStart, DURATION_MINUTES)
+                // verifica sovrapposizione tra intervalli
+                return resStart < slotEnd && resEnd > slotDate
             })
             .flatMap(r => r.table.split(" + ").map((t: string) => t.trim()))
 
         // tavoli disponibili
-        const freeTables = tables.filter(t =>
-            !reservedTables.includes(t.name) &&
-            (!t.union || !reservedTables.includes(t.union))
-        )
+        const freeTables = tables.filter(t => {
+            const isThisReserved = reservedTables.includes(t.name)
+            const isUnionReserved = reservedTables.includes(t.union) && people > t.people
+            return !isThisReserved && !isUnionReserved
+        })
 
         // tavolo disponibile per tot persone
         const match = freeTables.find(t => (t.people >= people) || (t.union && t.max >= people))
@@ -284,4 +304,39 @@ export async function getTableFree(date: string, people: number, reservationId?:
     }
 
     return availableSlots
+}
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// free table list
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+export async function getAvailableTables(date: string, time: string, reservationId?: string) {
+
+    const reservations = await db.collection("reservations").find({ date }).toArray()
+
+    const tables = await db.collection("tables").find().toArray()
+    if (!tables.length) return []
+
+    const parsedDate = parse(date, "dd-MM-yyyy", new Date())
+    const slotDate = parse(time, "HH:mm", parsedDate)
+
+    const settings = await db.collection("settings").findOne()
+    const DURATION_MINUTES = settings?.prenotazione ? settings.prenotazione * 60 : 90
+
+    const slotEnd = addMinutes(slotDate, DURATION_MINUTES)
+
+    const reservedTables = reservations
+        .filter(r => {
+            if (reservationId && r._id.toString() === reservationId) return false
+
+            const resStart = parse(r.time, "HH:mm", parsedDate)
+            const resEnd = addMinutes(resStart, DURATION_MINUTES)
+
+            return resStart < slotEnd && resEnd > slotDate
+        })
+        .flatMap(r => r.table.split(" + ").map((t: string) => t.trim()))
+
+
+    const availableTables = tables.filter(t => !reservedTables.includes(t.name)).map(t => t.name)
+    return availableTables
 }

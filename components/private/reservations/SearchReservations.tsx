@@ -1,30 +1,24 @@
-"use client"
-
-import { useState } from "react"
-
 // shad
 import { Button } from "../../ui/button"
 import { Input } from "@/components/ui/input"
 
 // icons
-import { Search, Trash } from "lucide-react"
+import { Trash } from "lucide-react"
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // interface
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 interface SearchReservationsProps {
-    searchData: (val: string) => void
+    search: string
+    setSearch: React.Dispatch<React.SetStateAction<string>>
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export default function SearchReservations({ searchData }: SearchReservationsProps) {
-
-    const [search, setSearch] = useState("")
-
+export default function SearchReservations({ search, setSearch }: SearchReservationsProps) {
     return (
         <section className="flex items-center gap-2">
             <Input
@@ -32,23 +26,12 @@ export default function SearchReservations({ searchData }: SearchReservationsPro
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Cerca..."
             />
-            <Button
-                size="icon"
-                disabled={!search}
-                className="rounded-full cursor-pointer"
-                onClick={() => searchData(search)}
-            >
-                <Search />
-            </Button>
             {search.length > 0 && (
                 <Button
                     variant="destructive"
                     size="icon"
                     className="rounded-full cursor-pointer"
-                    onClick={() => {
-                        setSearch("")
-                        searchData("")
-                    }}
+                    onClick={() => setSearch("")}
                 >
                     <Trash />
                 </Button>

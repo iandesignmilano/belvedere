@@ -1,6 +1,6 @@
 // shad
 import { Button } from "../../ui/button"
-import { Input } from "@/components/ui/input"
+import { DatePicker } from "@/components/ui/datePicker"
 
 // icons
 import { Trash } from "lucide-react"
@@ -9,29 +9,30 @@ import { Trash } from "lucide-react"
 // interface
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-interface SearchIngredientsProps {
-    search: string
-    setSearch: React.Dispatch<React.SetStateAction<string>>
+interface DateOrdersProps {
+    dt: string
+    setDt: React.Dispatch<React.SetStateAction<string>>
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export default function SearchElements({ search, setSearch }: SearchIngredientsProps) {
+export default function DateOrders({ dt, setDt }: DateOrdersProps) {
     return (
         <section className="flex items-center gap-2">
-            <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Cerca..."
+            <DatePicker
+                className="w-auto grow"
+                placeholder="Cerca per giorno"
+                value={dt}
+                onChange={(date) => setDt(date || "")}
             />
-            {search.length > 0 && (
+            {dt.length > 0 && (
                 <Button
                     variant="destructive"
                     size="icon"
                     className="rounded-full cursor-pointer"
-                    onClick={() => setSearch("")}
+                    onClick={() => setDt("")}
                 >
                     <Trash />
                 </Button>

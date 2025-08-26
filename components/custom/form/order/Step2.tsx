@@ -1,3 +1,7 @@
+"use client"
+
+import { useState, useEffect, useRef } from "react"
+
 // formik
 import { FormikErrors, FormikTouched } from "formik"
 
@@ -5,12 +9,19 @@ import { FormikErrors, FormikTouched } from "formik"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { Popover, PopoverContent, PopoverAnchor } from "@/components/ui/popover"
+
+// action
+import { StreetMaps, GetZone } from "@/actions/Maps"
 
 // icons
 import { House, Bike } from "lucide-react"
 
 // interface
 import { OrderBase, AddressProps } from "@/actions/orders"
+
+// components
+import { ToastDanger } from "../../Toast"
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // interface
@@ -33,8 +44,84 @@ interface Step1Props {
 
 export default function Step2({ values, errors, touched, handleBlur, handleChange, setFieldValue, progress, setProgress }: Step1Props) {
 
+    const inputRef = useRef<HTMLInputElement>(null)
+
+    // --------------------------------------------------------------
+    // maps
+    // --------------------------------------------------------------
+
+    const [query, setQuery] = useState(values.address?.street || "")
+    const [open, setOpen] = useState(false)
+    const [results, setResults] = useState<Record<string, string | number>[]>([])
+
+    useEffect(() => {
+        const timeout = setTimeout(async () => {
+            if (query.length >= 3) {
+                const streets = await StreetMaps(query)
+                if (streets.length > 0) {
+                    setResults(streets)
+                    setOpen(true)
+                }
+            } else {
+                setOpen(false)
+                setResults([])
+            }
+        }, 400)
+
+        return () => clearTimeout(timeout)
+    }, [query])
+
+    // --------------------------------------------------------------
+    // selected
+    // --------------------------------------------------------------
+
+    function selectedAddress(address: Record<string, string | number>) {
+        const { street, street_number, city, cap } = address
+
+        setFieldValue("address", {
+            ...values.address,
+            street: street as string || "",
+            street_number: street_number as string || "",
+            city: city as string || "",
+            cap: cap as string || "",
+            zone: ""
+        })
+
+        setResults([])
+        setQuery(street as string)
+        setOpen(false)
+    }
+
+    // --------------------------------------------------------------
+    // address
+    // --------------------------------------------------------------
+
     const errorAddress = errors.address as FormikErrors<AddressProps> | undefined
     const touchedAddress = touched.address as FormikTouched<AddressProps> | undefined
+
+    // --------------------------------------------------------------
+    // next
+    // --------------------------------------------------------------
+
+    async function nextStep() {
+        if (values.type == "domicile") {
+            const zone = await GetZone(values.address as AddressProps)
+            if (zone) {
+                setFieldValue("address", {
+                    street: values.address?.street || "",
+                    street_number: values.address?.street_number || "",
+                    city: values.address?.city || "",
+                    cap: values.address?.cap || "",
+                    zone: zone
+                })
+                setProgress(progress + 1)
+            } else ToastDanger("Spiacente, l'indirizzo selezionato è fuori dalla zona di consegna.")
+        } else setProgress(progress + 1)
+    }
+
+    // --------------------------------------------------------------
+    // code
+    // --------------------------------------------------------------
 
     return (
         <>
@@ -58,16 +145,37 @@ export default function Step2({ values, errors, touched, handleBlur, handleChang
             {values.type == "domicile" && (
                 <div className="lg:col-span-2 grid lg:grid-cols-3 gap-8">
 
-                    <div className="space-y-2 lg:col-span-2">
+                    <div className="space-y-2 lg:col-span-2 relative">
                         <Label className="text-base pl-3">Indirizzo</Label>
-                        <Input
-                            name="address.street"
-                            placeholder="Indirizzo"
-                            onChange={handleChange}
-                            onBlur={handleBlur}
-                            value={values?.address?.street}
-                            className={errorAddress?.street && touchedAddress?.street ? "custom-form-error" : ""}
-                        />
+                        <Popover open={open} onOpenChange={setOpen}>
+                            <PopoverAnchor>
+                                <Input
+                                    ref={inputRef}
+                                    name="address.street"
+                                    placeholder="Indirizzo"
+                                    value={query}
+                                    onChange={(e) => setQuery(e.target.value)}
+                                    className={errorAddress?.street && touchedAddress?.street ? "custom-form-error" : ""}
+                                />
+                            </PopoverAnchor>
+                            <PopoverContent
+                                className="w-full px-2 py-1 space-y-1"
+                                side="bottom"
+                                align="start"
+                                style={{ minWidth: inputRef.current?.offsetWidth }}
+                                onOpenAutoFocus={(e) => e.preventDefault()}
+                            >
+                                {results.map((el: Record<string, string | number>, i: number) => (
+                                    <div
+                                        className="text-sm hover:text-primary cursor-pointer"
+                                        key={i}
+                                        onClick={() => selectedAddress(el)}
+                                    >
+                                        {el.display_name}
+                                    </div>
+                                ))}
+                            </PopoverContent>
+                        </Popover>
                         {errorAddress?.street && touchedAddress?.street && (
                             <p className="text-destructive text-sm pl-3">{errorAddress.street}</p>
                         )}
@@ -136,7 +244,7 @@ export default function Step2({ values, errors, touched, handleBlur, handleChang
                     disabled={!values.type ||
                         (values.type === "domicile" && (!values.address?.street || !values.address?.street_number || !values.address?.cap || !values.address?.city))
                     }
-                    onClick={() => setProgress(progress + 1)}
+                    onClick={() => nextStep()}
                 >
                     Avanti
                 </Button>

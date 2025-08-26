@@ -8,22 +8,75 @@ import { OrdersProps } from "@/actions/orders"
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export default function OrderPdf(order: OrdersProps, height: number, type: string) {
+export default function OrderPdf(order: OrdersProps, type: string) {
+
+    // --------------------------------------------------------------
+    // w - h - padding
+    // --------------------------------------------------------------
 
     const width = 8
     const padding = 0.2
+    const minHeight = 10
+
+    // --------------------------------------------------------------
+    // calcola altezza necessaria
+    // --------------------------------------------------------------
+
+    function calculateHeight(): number {
+        let calculatedHeight = 1
+
+        if (type == "delivery") calculatedHeight += 0.8
+
+        calculatedHeight += 0.5 + 0.5 + (type == "delivery" ? 0.5 : 0.8)
+        if (type == "delivery") calculatedHeight += 0.8
+
+        // address
+        if (type == "delivery") {
+            calculatedHeight += (order.type == "domicile" ? 0.5 : 0.8)
+            if (order.type == "domicile") calculatedHeight += 0.5 + 0.8
+        }
+
+        // orders
+        order.order.forEach((item) => {
+            calculatedHeight += 0.4
+
+            if (item.ingredients && item.ingredients?.length > 0) calculatedHeight += 0.4
+
+            if (item.removed && item.removed?.length > 0) calculatedHeight += item.removed.length * 0.4
+
+            if (item.custom && item.custom?.length > 0) calculatedHeight += item.custom.length * 0.4
+
+            calculatedHeight += 0.8
+        })
+
+        calculatedHeight += 1
+
+        return Math.max(calculatedHeight, minHeight)
+    }
+
+    const height = calculateHeight()
+
+    // --------------------------------------------------------------
+    // pdf
+    // --------------------------------------------------------------
 
     const doc = new jsPDF({ unit: "cm", format: [width, height] })
     let y = 1
 
+    // --------------------------------------------------------------
     // title
+    // --------------------------------------------------------------
+
     if (type == "delivery") {
         doc.setFontSize(12)
         doc.text("Pizzeria Belvedere", padding, y)
         y += 0.8
     }
 
-    // data
+    // --------------------------------------------------------------
+    // detail
+    // --------------------------------------------------------------
+
     doc.setFontSize(8)
     doc.text(`Codice ordine: ${order.code}`, padding, y)
     y += 0.5
@@ -40,7 +93,10 @@ export default function OrderPdf(order: OrdersProps, height: number, type: strin
         y += 0.8
     }
 
+    // --------------------------------------------------------------
     // address
+    // --------------------------------------------------------------
+
     if (type == "delivery") {
         doc.setFontSize(8)
         doc.text(`Consegna: ${order.type == "domicile" ? "Domicilio" : "Asporto"}`, padding, y)
@@ -56,7 +112,10 @@ export default function OrderPdf(order: OrdersProps, height: number, type: strin
         }
     }
 
-    // detail
+    // --------------------------------------------------------------
+    // orders
+    // --------------------------------------------------------------
+
     order.order.forEach((item) => {
 
         doc.setFontSize(8)
@@ -90,8 +149,10 @@ export default function OrderPdf(order: OrdersProps, height: number, type: strin
         y += 0.8
     })
 
-
+    // --------------------------------------------------------------
     // open
+    // --------------------------------------------------------------
+
     const blob = doc.output("blob")
     const url = URL.createObjectURL(blob)
     window.open(url, "_blank")

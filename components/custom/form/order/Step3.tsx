@@ -49,13 +49,17 @@ export default function Step3({ values, errors, touched, setFieldValue, progress
         async function getSlots() {
 
             const minimalOrder = values.order.map(item => ({ type: item.type, quantity: item.quantity }))
-            const res = await getBakingFree({ date: values.date as string, orders: minimalOrder })
+            const res = await getBakingFree({
+                date: values.date as string,
+                type: values.type,
+                orders: minimalOrder
+            })
             setSlots(res)
             setFieldValue('time', "")
         }
 
         if (values.order && values.date) getSlots()
-    }, [values.order, values.date, setFieldValue])
+    }, [values.order, values.date, setFieldValue, values.type])
 
 
     // --------------------------------------------------------------
