@@ -8,11 +8,12 @@ import OrderPage from "./OrderPage"
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export default async function Layout() {
+export default async function Page() {
 
     const settings = await getSettings()
 
     let stop = false
+
     if (settings) stop = settings.stop_ordini
 
     return (

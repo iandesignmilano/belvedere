@@ -57,3 +57,22 @@ export async function updateSettingsAction(formData: ActionProps) {
     }
     catch { return { errors: "Si è verificato un errore, riprova più tardi" } }
 }
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// task
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+export async function ActiveTask() {
+
+    const data = { stop_prenotazioni: false, stop_ordini: false }
+
+    try {
+        await db.collection("settings").updateOne({}, { $set: data })
+        revalidatePath("/private/impostazioni")
+        revalidatePath("/", "layout")
+        return { success: true }
+    }
+    catch {
+        return { errors: "Si è verificato un errore" }
+    }
+}

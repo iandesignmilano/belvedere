@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useCallback, useState } from "react"
+import React, { useCallback, useEffect, useState } from "react"
 
 // next
 import Link from "next/link"
@@ -58,26 +58,30 @@ export default function Step5({ values, progress, setProgress, setFieldValue, su
     // url pay
     // --------------------------------------------------------------
 
-    async function getUrlPay() {
+    const getUrlPay = useCallback(async () => {
         const total = getTotal()
         const data = await createSumupCheckout({ amount: total, description: "Ordine online sul sito" })
         setPayData({ url: data.url, id: data.id })
-    }
+    }, [getTotal])
 
     function createStorage() {
         localStorage.setItem("order", JSON.stringify(values))
         localStorage.setItem("transition_code", payData.id as string)
     }
 
+    useEffect(() => {
+        if (values.pay === "card") getUrlPay()
+    }, [values.pay, getUrlPay])
+
     // --------------------------------------------------------------
     // order
     // --------------------------------------------------------------
 
-    async function sendOrder() {
+    const sendOrder = useCallback(async () => {
         localStorage.removeItem('order')
         localStorage.removeItem('transition_code')
         await submitForm()
-    }
+    }, [submitForm])
 
     // --------------------------------------------------------------
     // code
@@ -181,6 +185,7 @@ export default function Step5({ values, progress, setProgress, setFieldValue, su
                 </div>
             </div>
 
+
             <div className="lg:col-span-2 flex max-lg:flex-col-reverse gap-4 justify-between">
                 <Button
                     className="custom-button custom-button-outline !text-lg"
@@ -228,7 +233,6 @@ export default function Step5({ values, progress, setProgress, setFieldValue, su
                     </>
                 )}
             </div>
-
         </>
     )
 }

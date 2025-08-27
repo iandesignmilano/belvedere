@@ -26,11 +26,14 @@ import { SumupCheckoutStatus } from '@/actions/sumup'
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 interface FormOrderProps {
-    progress: number;
-    setProgress: React.Dispatch<React.SetStateAction<number>>;
+    progress: number
+    setProgress: React.Dispatch<React.SetStateAction<number>>
+    setProcess: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-interface onSubmitProps extends FormOrderProps {
+interface onSubmitProps {
+    progress: number
+    setProgress: React.Dispatch<React.SetStateAction<number>>
     val: OrderBase
 }
 
@@ -218,7 +221,7 @@ async function onSubmitFunction({ val, progress, setProgress }: onSubmitProps) {
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export default function FormOrder({ progress, setProgress }: FormOrderProps) {
+export default function FormOrder({ progress, setProgress, setProcess }: FormOrderProps) {
 
     // --------------------------------------------------------------
     // values
@@ -227,7 +230,6 @@ export default function FormOrder({ progress, setProgress }: FormOrderProps) {
     const [initialValues, setInitialValues] = useState<OrderBase>(formInitialValue)
 
     useEffect(() => {
-
         async function checkoutInfo() {
 
             const code = localStorage.getItem('transition_code')
@@ -237,24 +239,29 @@ export default function FormOrder({ progress, setProgress }: FormOrderProps) {
                 const parsed = JSON.parse(order)
                 const status = await SumupCheckoutStatus(code)
 
-                // #TODO
-                if (status == "SUCCESS") {
-                    const values = { ...parsed, pay: "card", pay_id: code }
-                    await onSubmitFunction({ val: values, progress: 4, setProgress })
+                if (status == "SUCCESS" || status == "PAID") {
+                    setProcess(true)
+                    const data = { ...parsed, pay_id: code }
+                    const res = await addOrderAction(data)
+                    if (res.success) {
+                        setProgress(5)
+                        setProcess(false)
+                    }
                 }
 
                 if (status == "PENDING" || status == "FAILED") {
-                    setInitialValues(parsed)
-                    localStorage.removeItem('order')
-                    localStorage.removeItem('transition_code')
                     setProgress(4)
+                    setInitialValues(parsed)
                 }
+
+                localStorage.removeItem('order')
+                localStorage.removeItem('transition_code')
             }
         }
 
         checkoutInfo()
 
-    }, [setProgress])
+    }, [setProgress, setProcess])
 
     // --------------------------------------------------------------
     // form

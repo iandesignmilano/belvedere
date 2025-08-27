@@ -52,24 +52,27 @@ export default function Step2({ values, errors, touched, handleBlur, handleChang
 
     const [query, setQuery] = useState(values.address?.street || "")
     const [open, setOpen] = useState(false)
+    const [check, setCheck] = useState(false)
     const [results, setResults] = useState<Record<string, string | number>[]>([])
 
     useEffect(() => {
         const timeout = setTimeout(async () => {
-            if (query.length >= 3) {
-                const streets = await StreetMaps(query)
-                if (streets.length > 0) {
-                    setResults(streets)
-                    setOpen(true)
+            if (!check) {
+                if (query.length >= 3) {
+                    const streets = await StreetMaps(query)
+                    if (streets.length > 0) {
+                        setResults(streets)
+                        setOpen(true)
+                    }
+                } else {
+                    setOpen(false)
+                    setResults([])
                 }
-            } else {
-                setOpen(false)
-                setResults([])
             }
         }, 400)
 
         return () => clearTimeout(timeout)
-    }, [query])
+    }, [query, check])
 
     // --------------------------------------------------------------
     // selected
@@ -90,6 +93,7 @@ export default function Step2({ values, errors, touched, handleBlur, handleChang
         setResults([])
         setQuery(street as string)
         setOpen(false)
+        setCheck(true)
     }
 
     // --------------------------------------------------------------
@@ -154,7 +158,10 @@ export default function Step2({ values, errors, touched, handleBlur, handleChang
                                     name="address.street"
                                     placeholder="Indirizzo"
                                     value={query}
-                                    onChange={(e) => setQuery(e.target.value)}
+                                    onChange={(e) => {
+                                        setQuery(e.target.value)
+                                        setCheck(false)
+                                    }}
                                     className={errorAddress?.street && touchedAddress?.street ? "custom-form-error" : ""}
                                 />
                             </PopoverAnchor>
@@ -162,7 +169,7 @@ export default function Step2({ values, errors, touched, handleBlur, handleChang
                                 className="w-full px-2 py-1 space-y-1"
                                 side="bottom"
                                 align="start"
-                                style={{ minWidth: inputRef.current?.offsetWidth }}
+                                style={{ width: inputRef.current?.offsetWidth }}
                                 onOpenAutoFocus={(e) => e.preventDefault()}
                             >
                                 {results.map((el: Record<string, string | number>, i: number) => (

@@ -77,6 +77,5 @@ export async function SumupCheckoutStatus(transition_code: string) {
     })
 
     const data = await res.json()
-    console.log(data.status)
     return data.status
 }

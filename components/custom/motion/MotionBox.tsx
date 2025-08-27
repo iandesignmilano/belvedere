@@ -135,7 +135,7 @@ export function MotionIconBox({ box, footer = false }: MotionIconBoxProps) {
                             </div>
                             <div>
                                 <p className="text-sm text-slate-600">{el.name}</p>
-                                <h4 className="text-lg lg:text-xl">
+                                <h4 className="text-base lg:text-xl">
                                     {!Array.isArray(el.text) && el.text}
                                     {el.link && (
                                         <Link href={el.link.link} className="hover:text-primary custom-transition" target={el.link.blank ? "_blank" : undefined}>

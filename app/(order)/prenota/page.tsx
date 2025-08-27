@@ -14,6 +14,7 @@ export default async function Page() {
 
     let stop = false
     let gap = 90
+
     if (settings) {
         stop = settings.stop_prenotazioni
         gap = settings.prenotazione * 60

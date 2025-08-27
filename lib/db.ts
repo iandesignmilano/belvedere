@@ -19,7 +19,7 @@ interface SessionDoc {
 // mongo
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-const client = new MongoClient(process.env.MONGO_URL as string)
+export const client = new MongoClient(process.env.MONGO_URL as string)
 await client.connect()
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
