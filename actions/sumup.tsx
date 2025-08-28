@@ -53,7 +53,7 @@ export async function createSumupCheckout({ amount, description, }: { amount: st
             merchant_code: code,
             description,
             hosted_checkout: { enabled: true },
-            redirect_url: `http://localhost:3000/ordina`
+            redirect_url: `https://belvedere.iandesign.it/ordina`
         }),
     })
 
