@@ -34,8 +34,8 @@ interface Step1Props {
     handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void
     handleBlur: (e: React.FocusEvent<HTMLInputElement>) => void
     setFieldValue: <K extends keyof OrderBase>(field: K, value: OrderBase[K], shouldValidate?: boolean) => void
-    setProgress: React.Dispatch<React.SetStateAction<number>>
-    progress: number
+    setProgress?: React.Dispatch<React.SetStateAction<number>>
+    progress?: number
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -118,9 +118,11 @@ export default function Step2({ values, errors, touched, handleBlur, handleChang
                     cap: values.address?.cap || "",
                     zone: zone
                 })
-                setProgress(progress + 1)
+                if (progress && setProgress) setProgress(progress + 1)
             } else ToastDanger("Spiacente, l'indirizzo selezionato è fuori dalla zona di consegna.")
-        } else setProgress(progress + 1)
+        } else {
+            if (progress && setProgress) setProgress(progress + 1)
+        }
     }
 
     // --------------------------------------------------------------
@@ -236,26 +238,28 @@ export default function Step2({ values, errors, touched, handleBlur, handleChang
                 </div>
             )}
 
-            <div className="lg:col-span-2 flex gap-4 max-lg:flex-col-reverse justify-between">
-                <Button
-                    className="custom-button custom-button-outline !text-lg max-lg:w-full"
-                    variant="outline"
-                    type="button"
-                    onClick={() => setProgress(progress - 1)}
-                >
-                    Indietro
-                </Button>
-                <Button
-                    type="button"
-                    className="custom-button !text-lg max-lg:w-full"
-                    disabled={!values.type ||
-                        (values.type === "domicile" && (!values.address?.street || !values.address?.street_number || !values.address?.cap || !values.address?.city))
-                    }
-                    onClick={() => nextStep()}
-                >
-                    Avanti
-                </Button>
-            </div>
+            {progress && setProgress && (
+                <div className="lg:col-span-2 flex gap-4 max-lg:flex-col-reverse justify-between">
+                    <Button
+                        className="custom-button custom-button-outline !text-lg max-lg:w-full"
+                        variant="outline"
+                        type="button"
+                        onClick={() => setProgress(progress - 1)}
+                    >
+                        Indietro
+                    </Button>
+                    <Button
+                        type="button"
+                        className="custom-button !text-lg max-lg:w-full"
+                        disabled={!values.type ||
+                            (values.type === "domicile" && (!values.address?.street || !values.address?.street_number || !values.address?.cap || !values.address?.city))
+                        }
+                        onClick={() => nextStep()}
+                    >
+                        Avanti
+                    </Button>
+                </div>
+            )}
         </>
     )
 }

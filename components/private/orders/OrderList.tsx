@@ -2,6 +2,9 @@
 
 import React, { useState, useEffect } from "react"
 
+// next
+import Link from "next/link"
+
 // components
 import OrderPdf from "./OrderPdf"
 import SearchOrders from "./SearchOrders"
@@ -120,11 +123,11 @@ export default function OrderList({ orders, privileges }: { orders: OrdersProps[
                     <SearchOrders search={search} setSearch={setSearch} />
                 </div>
                 {(privileges == "all" || privileges.includes("create")) && (
-                    <div>
-                        <Button className="custom-button w-full" disabled>
+                    <Link href="ordini/aggiungi">
+                        <Button className="custom-button w-full">
                             Aggiungi ordine
                         </Button>
-                    </div>
+                    </Link>
                 )}
             </div>
 
@@ -148,7 +151,7 @@ export default function OrderList({ orders, privileges }: { orders: OrdersProps[
                                         <AccordionTrigger className="bg-slate-100 flex items-center justify-between p-4 rounded-b-none cursor-pointer hover:no-underline">
                                             <span className="flex max-lg:flex-col lg:items-center gap-2">
                                                 <div className="flex items-center gap-2">
-                                                    <Badge>
+                                                    <Badge className={colors[el.address?.zone as keyof typeof colors]}>
                                                         {el.type == "domicile" ? <Bike /> : <House />}
                                                         {el.time}
                                                     </Badge>
@@ -157,6 +160,7 @@ export default function OrderList({ orders, privileges }: { orders: OrdersProps[
                                                             {el.address?.zone}
                                                         </Badge>
                                                     )}
+                                                    {el.site == "sede" && <Badge variant="outline">Sede</Badge>}
                                                 </div>
                                                 <h2 className="text-sm text-primary">({el.code}) {el.fullname}</h2>
                                             </span>

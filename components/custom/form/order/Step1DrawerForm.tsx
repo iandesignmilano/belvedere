@@ -218,7 +218,7 @@ export default function Step1DrawerForm({ selected, values, active, errors, touc
                             collapsible className="bg-input rounded-xl px-4 lg:col-span-2"
                             disabled={!data.type}
                         >
-                            {selected.ingredients && (
+                            {selected.ingredients && Array.isArray(selected.ingredients) && selected.ingredients.length > 0 && (
                                 <AccordionItem value="item-1" className="border-slate-300">
                                     <AccordionTrigger className="text-base">
                                         <div className="flex items-center gap-2">

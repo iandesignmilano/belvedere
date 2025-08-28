@@ -40,8 +40,8 @@ interface Step1Props {
     touched: FormikTouched<OrderBase>
     setFieldValue: FormikHelpers<OrderBase>["setFieldValue"]
     setFieldTouched: (field: string, touched?: boolean, shouldValidate?: boolean) => void
-    setProgress: React.Dispatch<React.SetStateAction<number>>
-    progress: number
+    setProgress?: React.Dispatch<React.SetStateAction<number>>
+    progress?: number
 }
 
 export interface GetDataProps {
@@ -346,19 +346,21 @@ export default function Step1({ values, errors, touched, setFieldValue, setField
                 </div>
             </div>
 
-            <div className="lg:col-span-2 flex max-lg:flex-col-reverse gap-4 justify-between">
-                <Link href="/">
-                    <Button className="custom-button !text-lg max-lg:w-full" variant="destructive" type="button">Annulla</Button>
-                </Link>
-                <Button
-                    type="button"
-                    className="custom-button !text-lg max-lg:w-full"
-                    disabled={values.order.length == 0}
-                    onClick={() => setProgress(progress + 1)}
-                >
-                    Avanti
-                </Button>
-            </div>
+            {typeof progress == "number" && setProgress && (
+                <div className="lg:col-span-2 flex max-lg:flex-col-reverse gap-4 justify-between">
+                    <Link href="/">
+                        <Button className="custom-button !text-lg max-lg:w-full" variant="destructive" type="button">Annulla</Button>
+                    </Link>
+                    <Button
+                        type="button"
+                        className="custom-button !text-lg max-lg:w-full"
+                        disabled={values.order.length == 0}
+                        onClick={() => setProgress(progress + 1)}
+                    >
+                        Avanti
+                    </Button>
+                </div>
+            )}
 
             <Drawer open={open} onOpenChange={() => setOpen(false)}>
                 <DrawerContent

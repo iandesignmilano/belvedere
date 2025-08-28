@@ -78,6 +78,7 @@ export type OrderBase = {
     pay: string
     pay_id: string
     order: ItemsProps[]
+    site?: string
 }
 
 export interface OrdersProps extends OrderBase {
@@ -123,7 +124,8 @@ export async function getOrders(date?: string) {
         address: el.address,
         pay: el.pay,
         pay_id: el.pay_id,
-        order: el.order
+        order: el.order,
+        site: el.site
     }))
 
     return result
@@ -214,7 +216,7 @@ export async function addOrderAction(formData: AddOrderProps, user?: string) {
         await db.collection("orders").insertOne(order)
 
         // not user request and date is today
-        if (!check_user && formData.date == today) {
+        if (!check_user && formData.date == today && formData.site !== "sede") {
             await fetch(process.env.NEXT_PUBLIC_WS_API_URL as string, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -222,8 +224,10 @@ export async function addOrderAction(formData: AddOrderProps, user?: string) {
             })
         }
 
-        await transporter.verify()
-        await transporter.sendMail(message)
+        if (formData.site !== "sede") {
+            await transporter.verify()
+            await transporter.sendMail(message)
+        }
 
         revalidatePath("/private/ordini")
         return { success: true }

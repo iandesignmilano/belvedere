@@ -29,8 +29,8 @@ interface Step3Props {
     handleBlur: (e: React.FocusEvent<HTMLInputElement>) => void
     setFieldValue: <K extends keyof OrderBase>(field: K, value: OrderBase[K], shouldValidate?: boolean) => void
 
-    setProgress: React.Dispatch<React.SetStateAction<number>>
-    progress: number
+    setProgress?: React.Dispatch<React.SetStateAction<number>>
+    progress?: number
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -100,24 +100,26 @@ export default function Step3({ values, errors, touched, setFieldValue, progress
                 {errors.time && touched.time && <p className="text-red-500 text-sm pl-3">{errors.time}</p>}
             </div>
 
-            <div className="lg:col-span-2 flex gap-4 justify-between max-lg:flex-col-reverse">
-                <Button
-                    className="custom-button custom-button-outline !text-lg max-lg:w-full"
-                    variant="outline"
-                    type="button"
-                    onClick={() => setProgress(progress - 1)}
-                >
-                    Indietro
-                </Button>
-                <Button
-                    type="button"
-                    className="custom-button !text-lg max-lg:w-full"
-                    disabled={!values.date || !values.time || !!errors.date || !!errors.time}
-                    onClick={() => setProgress(progress + 1)}
-                >
-                    Avanti
-                </Button>
-            </div>
+            {progress && setProgress && (
+                <div className="lg:col-span-2 flex gap-4 justify-between max-lg:flex-col-reverse">
+                    <Button
+                        className="custom-button custom-button-outline !text-lg max-lg:w-full"
+                        variant="outline"
+                        type="button"
+                        onClick={() => setProgress(progress - 1)}
+                    >
+                        Indietro
+                    </Button>
+                    <Button
+                        type="button"
+                        className="custom-button !text-lg max-lg:w-full"
+                        disabled={!values.date || !values.time || !!errors.date || !!errors.time}
+                        onClick={() => setProgress(progress + 1)}
+                    >
+                        Avanti
+                    </Button>
+                </div>
+            )}
         </>
     )
 }

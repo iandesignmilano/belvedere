@@ -65,7 +65,17 @@ const stepSchemas = [
 
                     type_list: yup.string().optional(),
 
-                    ingredients: yup.string().optional(),
+                    ingredients: yup
+                        .array()
+                        .of(
+                            yup.object({
+                                name: yup.string().optional(),
+                                price: yup.string().optional(),
+                                xl: yup.string().optional(),
+                                xxl: yup.string().optional()
+                            })
+                        )
+                        .optional(),
 
                     type: yup
                         .string()
@@ -235,6 +245,7 @@ export default function FormOrder({ progress, setProgress, setProcess }: FormOrd
             const code = localStorage.getItem('transition_code')
             const order = localStorage.getItem('order')
 
+            // 2 volte solo nel dev produzione tutto ok!
             if (code && order) {
                 const parsed = JSON.parse(order)
                 const status = await SumupCheckoutStatus(code)
